@@ -155,7 +155,7 @@ export default function FormsPage() {
       </div>
 
       <div className="mt-8 text-center text-gray-500 text-sm">
-        © 2025 Comet Portal • Developed by Ceven Technologies
+        2025 portal Developed by Aqstoria
       </div>
     </div>
   );
