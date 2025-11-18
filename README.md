@@ -237,6 +237,10 @@ This will create the default admin, supervisor, and user accounts.
 
 Your app is live at: **https://portal-blue-zeta.vercel.app**
 
+---
+
+**Last updated**: Ready for deployment with environment variables configured.
+
 ## License
 
 © 2025 Comet Portal •
