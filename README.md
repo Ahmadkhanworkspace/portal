@@ -43,13 +43,24 @@ npm install
 
 3. Set up environment variables:
 ```bash
-# Copy the example env file
-cp .env.local.example .env.local
-
-# Edit .env.local and add your MongoDB connection string
-# For local MongoDB: mongodb://localhost:27017/comet-portal
-# For MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/comet-portal
+# Create .env.local file
+# Copy the template: cp env.template .env.local
+# Or create manually and add the following variables:
 ```
+
+**Required Environment Variables:**
+```env
+# MongoDB Connection String
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/comet-portal?retryWrites=true&w=majority
+
+# NextAuth Secret (generate with: openssl rand -base64 32)
+NEXTAUTH_SECRET=your-secret-key-here-minimum-32-characters
+
+# NextAuth URL (for local: http://localhost:3000)
+NEXTAUTH_URL=http://localhost:3000
+```
+
+See `ENVIRONMENT_VARIABLES.md` for detailed setup instructions.
 
 4. Start MongoDB (if using local installation):
 ```bash
