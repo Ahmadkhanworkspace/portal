@@ -6,19 +6,12 @@ Copy these values to your Vercel project → Settings → Environment Variables
 
 **Key**: `MONGODB_URI`
 
-**Value** (replace `<db_password>` with your actual MongoDB password):
+**Value**:
 ```
-mongodb+srv://aqstoria_db_user:<db_password>@cluster0.ieh1nqe.mongodb.net/comet-portal?retryWrites=true&w=majority&appName=Cluster0
+mongodb+srv://aqstoria_db_user:olH07V3q5RDbij9n@cluster0.ieh1nqe.mongodb.net/comet-portal?retryWrites=true&w=majority&appName=Cluster0
 ```
 
-**Important**: 
-- Replace `<db_password>` with your actual MongoDB Atlas password
-- Make sure to URL-encode special characters in your password (e.g., `@` becomes `%40`, `#` becomes `%23`)
-
-**Example** (if your password is `MyP@ssw0rd#123`):
-```
-mongodb+srv://aqstoria_db_user:MyP%40ssw0rd%23123@cluster0.ieh1nqe.mongodb.net/comet-portal?retryWrites=true&w=majority&appName=Cluster0
-```
+**Note**: This is your actual MongoDB password from your local setup.
 
 **Environment**: Select all (Production, Preview, Development)
 
@@ -28,23 +21,12 @@ mongodb+srv://aqstoria_db_user:MyP%40ssw0rd%23123@cluster0.ieh1nqe.mongodb.net/c
 
 **Key**: `NEXTAUTH_SECRET`
 
-**Value** (generate a new one - this is just an example):
+**Value** (from your local setup):
 ```
-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+w3Hmly3Cj5KUVmmQ9G/erYOgeUFqH7t+AWeA+u3Cn7g=
 ```
 
-**How to generate your own**:
-- **Online**: Visit https://generate-secret.vercel.app/32
-- **Linux/Mac**: Run `openssl rand -base64 32`
-- **Windows PowerShell**: 
-  ```powershell
-  -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | % {[char]$_})
-  ```
-
-**Requirements**:
-- Must be at least 32 characters long
-- Use a different secret for production (don't use the example above)
-- Keep it secure and never share it
+**Note**: This is your actual NEXTAUTH_SECRET from your local `.env.local` file.
 
 **Environment**: Select all (Production, Preview, Development)
 
@@ -76,12 +58,12 @@ After replacing `<db_password>` with your actual password and generating a NEXTA
 
 1. **MONGODB_URI**:
    ```
-   mongodb+srv://aqstoria_db_user:YOUR_PASSWORD_HERE@cluster0.ieh1nqe.mongodb.net/comet-portal?retryWrites=true&w=majority&appName=Cluster0
+   mongodb+srv://aqstoria_db_user:olH07V3q5RDbij9n@cluster0.ieh1nqe.mongodb.net/comet-portal?retryWrites=true&w=majority&appName=Cluster0
    ```
 
 2. **NEXTAUTH_SECRET**:
    ```
-   YOUR_GENERATED_32_CHARACTER_SECRET_HERE
+   w3Hmly3Cj5KUVmmQ9G/erYOgeUFqH7t+AWeA+u3Cn7g=
    ```
 
 3. **NEXTAUTH_URL**:
