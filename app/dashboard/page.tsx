@@ -17,7 +17,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
 const cardBase =
-  'bg-white border border-teal-50 shadow-sm rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg';
+  'bg-white border border-slate-100 shadow-sm rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg';
 
 export default function DashboardPage() {
   const pathname = usePathname();
@@ -69,30 +69,42 @@ export default function DashboardPage() {
       label: 'Total Forms',
       value: stats.totalForms,
       icon: ClipboardList,
-      accent: 'from-blue-500/90 to-indigo-500/90',
+      accent: 'from-teal-400 to-emerald-500',
     },
     {
       label: 'Total Users',
       value: stats.totalUsers,
       icon: Users,
-      accent: 'from-emerald-500/90 to-teal-500/90',
+      accent: 'from-emerald-400 to-cyan-500',
     },
     {
       label: 'Submissions',
       value: stats.totalSubmissions,
       icon: Database,
-      accent: 'from-orange-500/90 to-amber-500/90',
+      accent: 'from-blue-400 to-indigo-500',
     },
     {
       label: 'Authorized IPs',
       value: stats.authorizedIPs,
       icon: Globe,
-      accent: 'from-purple-500/90 to-fuchsia-500/90',
+      accent: 'from-amber-400 to-orange-500',
     },
   ];
 
+  const submissionsSeries = [
+    120, 180, 240, 210, 260, 320, 300, 360, 410, 380, 440, 500,
+  ];
+  const maxValue = Math.max(...submissionsSeries, 500);
+  const points = submissionsSeries
+    .map((v, i) => {
+      const x = (i / (submissionsSeries.length - 1)) * 100;
+      const y = 100 - (v / maxValue) * 100;
+      return `${x},${y}`;
+    })
+    .join(' ');
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[#f6f9fc] min-h-screen -mx-6 px-6 pb-10">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white p-6 md:p-8 shadow-lg">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_45%)]" />
         <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -177,30 +189,38 @@ export default function DashboardPage() {
           <div className={`${cardBase} bg-white`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-500">Momentum</p>
-                <h3 className="text-lg font-semibold text-slate-900">Submissions Trend</h3>
+                <p className="text-sm text-slate-500">Submissions</p>
+                <h3 className="text-lg font-semibold text-slate-900">Overview</h3>
               </div>
-              <TrendingUp className="text-slate-600" size={20} />
+              <TrendingUp className="text-teal-600" size={20} />
             </div>
-            <div className="mt-4 space-y-3">
-              <ProgressRow
-                label="Forms"
-                value={stats.totalForms}
-                color="bg-emerald-500"
-                loading={loading}
-              />
-              <ProgressRow
-                label="Submissions"
-                value={stats.totalSubmissions}
-                color="bg-teal-500"
-                loading={loading}
-              />
-              <ProgressRow
-                label="Users"
-                value={stats.totalUsers}
-                color="bg-cyan-500"
-                loading={loading}
-              />
+            <div className="mt-4">
+              <div className="relative h-56">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full">
+                  <defs>
+                    <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <polyline
+                    fill="none"
+                    stroke="#0ea5e9"
+                    strokeWidth="2"
+                    points={points}
+                  />
+                  <polygon
+                    fill="url(#areaGradient)"
+                    points={`0,100 ${points} 100,100`}
+                  />
+                </svg>
+              </div>
+              <div className="mt-3 flex items-center gap-4 text-sm text-slate-600">
+                <span className="inline-flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-sky-500" />
+                  Submissions
+                </span>
+              </div>
             </div>
           </div>
 
