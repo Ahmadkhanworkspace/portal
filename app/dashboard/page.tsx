@@ -91,8 +91,9 @@ export default function DashboardPage() {
     },
   ];
 
+  const submissionsLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const submissionsSeries = [
-    120, 180, 240, 210, 260, 320, 300, 360, 410, 380, 440, 500,
+    120, 180, 240, 210, 260, 320, 300, 360, 410, 380, 440, 520,
   ];
   const maxValue = Math.max(...submissionsSeries, 500);
   const points = submissionsSeries
@@ -209,11 +210,21 @@ export default function DashboardPage() {
                     strokeWidth="2"
                     points={points}
                   />
+                  {submissionsSeries.map((v, i) => {
+                    const x = (i / (submissionsSeries.length - 1)) * 100;
+                    const y = 100 - (v / maxValue) * 100;
+                    return <circle key={i} cx={x} cy={y} r={1.2} fill="#0ea5e9" />;
+                  })}
                   <polygon
                     fill="url(#areaGradient)"
                     points={`0,100 ${points} 100,100`}
                   />
                 </svg>
+                <div className="absolute inset-x-3 bottom-2 flex justify-between text-[10px] text-slate-500">
+                  {submissionsLabels.map((label) => (
+                    <span key={label}>{label}</span>
+                  ))}
+                </div>
               </div>
               <div className="mt-3 flex items-center gap-4 text-sm text-slate-600">
                 <span className="inline-flex items-center gap-1">
