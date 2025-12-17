@@ -12,16 +12,10 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const roleCredentials = {
-    admin: { email: 'admin@cometportal.com', password: 'admin123' },
-    supervisor: { email: 'supervisor@cometportal.com', password: 'supervisor123' },
-    user: { email: 'user@cometportal.com', password: 'user123' },
-  };
-
   const handleRoleSelect = (role: 'admin' | 'supervisor' | 'user') => {
     setSelectedRole(role);
-    setIdentifier(roleCredentials[role].email);
-    setPassword(roleCredentials[role].password);
+    setIdentifier('');
+    setPassword('');
     setError('');
   };
 
@@ -63,41 +57,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="mb-6">
-          <p className="text-sm text-gray-600 mb-3">Quick Fill (optional)</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleRoleSelect('admin')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${
-                selectedRole === 'admin'
-                  ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-300'
-              } transition-colors`}
-            >
-              Admin
-            </button>
-            <button
-              onClick={() => handleRoleSelect('supervisor')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${
-                selectedRole === 'supervisor'
-                  ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-300'
-              } transition-colors`}
-            >
-              Supervisor
-            </button>
-            <button
-              onClick={() => handleRoleSelect('user')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${
-                selectedRole === 'user'
-                  ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-300'
-              } transition-colors`}
-            >
-              User
-            </button>
-          </div>
-        </div>
+        <div className="mb-2" />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
