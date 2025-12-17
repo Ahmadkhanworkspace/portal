@@ -50,8 +50,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        // @ts-expect-error permissions is custom
-        token.permissions = user.permissions || {};
+        token.permissions = (user as any).permissions || {};
       }
       return token;
     },
@@ -59,8 +58,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as 'Admin' | 'Supervisor' | 'User';
-        // @ts-expect-error permissions is custom
-        session.user.permissions = token.permissions as any;
+        session.user.permissions = (token as any).permissions as any;
       }
       return session;
     },
