@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Download, FileSpreadsheet, FileText, FilePdf, Sheet } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText, FileDown, Sheet } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 interface Submission {
@@ -111,7 +111,7 @@ export default function ReportsPage() {
           />
           <ExportButton
             label="PDF"
-            icon={<FilePdf size={16} />}
+            icon={<FileDown size={16} />}
             onClick={() => handleExport('pdf')}
             loading={exporting === 'pdf'}
           />

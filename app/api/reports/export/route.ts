@@ -3,8 +3,10 @@ import connectDB from '@/lib/mongodb';
 import FormSubmission from '@/models/FormSubmission';
 import { getCurrentUser } from '@/lib/auth';
 import { requirePermission } from '@/lib/permissions';
+export const runtime = 'nodejs';
+
 import PDFDocument from 'pdfkit';
-import XLSX from 'xlsx';
+import * as XLSX from 'xlsx';
 
 function submissionsToRows(submissions: any[]) {
   return submissions.map((s) => ({

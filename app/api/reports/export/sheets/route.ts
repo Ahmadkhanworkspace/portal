@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import connectDB from '@/lib/mongodb';
 import FormSubmission from '@/models/FormSubmission';
 import { getCurrentUser } from '@/lib/auth';
