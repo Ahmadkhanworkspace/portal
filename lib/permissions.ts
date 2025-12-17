@@ -9,9 +9,12 @@ export interface Permissions {
   canDeleteForms: boolean;
   canEditForms: boolean;
   canCreateForms: boolean;
+  canManageSettings: boolean;
 }
 
-export function getPermissions(role: UserRole): Permissions {
+type PartialPermissions = Partial<Permissions>;
+
+export function basePermissions(role: UserRole): Permissions {
   switch (role) {
     case 'Admin':
       return {
@@ -23,6 +26,7 @@ export function getPermissions(role: UserRole): Permissions {
         canDeleteForms: true,
         canEditForms: true,
         canCreateForms: true,
+        canManageSettings: true,
       };
     case 'Supervisor':
       return {
@@ -34,18 +38,9 @@ export function getPermissions(role: UserRole): Permissions {
         canDeleteForms: false,
         canEditForms: true,
         canCreateForms: true,
+        canManageSettings: false,
       };
     case 'User':
-      return {
-        canManageUsers: false,
-        canManageForms: false,
-        canManageIPs: false,
-        canViewSubmissions: false,
-        canManageRequests: false,
-        canDeleteForms: false,
-        canEditForms: false,
-        canCreateForms: false,
-      };
     default:
       return {
         canManageUsers: false,
@@ -56,16 +51,24 @@ export function getPermissions(role: UserRole): Permissions {
         canDeleteForms: false,
         canEditForms: false,
         canCreateForms: false,
+        canManageSettings: false,
       };
   }
 }
 
+export function getPermissions(role: UserRole, overrides?: PartialPermissions): Permissions {
+  const base = basePermissions(role);
+  if (!overrides) return base;
+  return { ...base, ...overrides };
+}
+
 export function requirePermission(
   userRole: UserRole | undefined,
-  permission: keyof Permissions
+  permission: keyof Permissions,
+  overrides?: PartialPermissions
 ): boolean {
   if (!userRole) return false;
-  const permissions = getPermissions(userRole);
+  const permissions = getPermissions(userRole, overrides);
   return permissions[permission];
 }
 

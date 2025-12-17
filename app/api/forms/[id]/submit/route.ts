@@ -4,7 +4,7 @@ import Form from '@/models/Form';
 import FormSubmission from '@/models/FormSubmission';
 import { getCurrentUser } from '@/lib/auth';
 import { normalizeUsPhone, isValidUsPhone } from '@/lib/phone';
-import { appendSubmissionRow } from '@/lib/googleSheets';
+import { appendSubmissionRow, resolveSheetsConfig } from '@/lib/googleSheets';
 
 async function resolveParams(params: Promise<{ id: string }> | { id: string }) {
   return params instanceof Promise ? await params : params;
@@ -63,10 +63,11 @@ export async function POST(
     // Fire-and-forget Google Sheets append (do not block response)
     (async () => {
       try {
-        const sheetId = process.env.GOOGLE_SHEETS_ID;
+        const { sheetId, submissionsTab } = await resolveSheetsConfig();
         if (!sheetId) return;
         await appendSubmissionRow({
           sheetId,
+          tabName: submissionsTab,
           formTitle: form.title,
           formId: form.formId,
           submission: body.formData || {},

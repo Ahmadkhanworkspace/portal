@@ -27,7 +27,8 @@ export default function FormsPage() {
   const { data: session } = useSession();
   
   const userRole = session?.user?.role as 'Admin' | 'Supervisor' | 'User' | undefined;
-  const permissions = userRole ? getPermissions(userRole) : null;
+  const userPermOverrides = session?.user?.permissions;
+  const permissions = userRole ? getPermissions(userRole, userPermOverrides || undefined) : null;
 
   useEffect(() => {
     fetchForms();
@@ -95,8 +96,19 @@ export default function FormsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">All Forms ({forms.length})</h1>
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">All Forms ({forms.length})</h1>
+          <p className="text-gray-600">Manage, preview, or edit your forms.</p>
+        </div>
+        {permissions?.canCreateForms && (
+          <Link
+            href="/form-builder"
+            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition"
+          >
+            + New Form
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

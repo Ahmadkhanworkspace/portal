@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import FormSubmission from '@/models/FormSubmission';
 import Form from '@/models/Form';
-import { appendRow } from '@/lib/googleSheets';
+import { appendRow, resolveSheetsConfig } from '@/lib/googleSheets';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const sheetId = process.env.GOOGLE_SHEETS_ID;
+    const { sheetId, dailyTab } = await resolveSheetsConfig();
     if (!sheetId) {
       return NextResponse.json(
         { success: false, error: 'GOOGLE_SHEETS_ID is not configured' },
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     await appendRow({
       sheetId,
-      range: 'DailyReports!A1',
+      range: `${dailyTab}!A1`,
       values: [
         start.toISOString().slice(0, 10),
         total,

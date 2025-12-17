@@ -271,7 +271,6 @@ export default function FormPreviewPage() {
                     disabled={disabled}
                     onChange={(e) => handleInputChange(field, e.target.value)}
                     className={`${baseInput} border-gray-300 focus:ring-blue-500`}
-                    {...clipboardProps}
                   >
                     <option value="">Select an option</option>
                     {field.options.map((option, optIdx) => (

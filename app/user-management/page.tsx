@@ -11,6 +11,7 @@ interface User {
   name: string;
   email: string;
   role: 'Admin' | 'Supervisor' | 'User';
+  permissions?: Record<string, boolean>;
 }
 
 export default function UserManagementPage() {
@@ -19,7 +20,23 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'User' as 'Admin' | 'Supervisor' | 'User' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'User' as 'Admin' | 'Supervisor' | 'User',
+    permissions: {
+      canManageUsers: false,
+      canManageForms: false,
+      canManageIPs: false,
+      canViewSubmissions: false,
+      canManageRequests: false,
+      canDeleteForms: false,
+      canEditForms: false,
+      canCreateForms: false,
+      canManageSettings: false,
+    },
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -43,13 +60,45 @@ export default function UserManagementPage() {
 
   const handleAddUser = () => {
     setEditingUser(null);
-    setFormData({ name: '', email: '', password: '', role: 'User' });
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: 'User',
+      permissions: {
+        canManageUsers: false,
+        canManageForms: false,
+        canManageIPs: false,
+        canViewSubmissions: false,
+        canManageRequests: false,
+        canDeleteForms: false,
+        canEditForms: false,
+        canCreateForms: false,
+        canManageSettings: false,
+      },
+    });
     setShowAddModal(true);
   };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
-    setFormData({ name: user.name, email: user.email, password: '', role: user.role });
+    setFormData({
+      name: user.name,
+      email: user.email,
+      password: '',
+      role: user.role,
+      permissions: {
+        canManageUsers: user.permissions?.canManageUsers ?? false,
+        canManageForms: user.permissions?.canManageForms ?? false,
+        canManageIPs: user.permissions?.canManageIPs ?? false,
+        canViewSubmissions: user.permissions?.canViewSubmissions ?? false,
+        canManageRequests: user.permissions?.canManageRequests ?? false,
+        canDeleteForms: user.permissions?.canDeleteForms ?? false,
+        canEditForms: user.permissions?.canEditForms ?? false,
+        canCreateForms: user.permissions?.canCreateForms ?? false,
+        canManageSettings: user.permissions?.canManageSettings ?? false,
+      },
+    });
     setShowAddModal(true);
   };
 
@@ -110,6 +159,7 @@ export default function UserManagementPage() {
           name: formData.name,
           email: formData.email,
           role: formData.role,
+          permissions: formData.permissions,
         };
         if (formData.password) {
           updateData.password = formData.password;
@@ -206,6 +256,7 @@ export default function UserManagementPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overrides</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -233,6 +284,14 @@ export default function UserManagementPage() {
                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                       {user.role}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.permissions
+                      ? Object.entries(user.permissions)
+                          .filter(([_, v]) => v)
+                          .map(([k]) => k.replace('can', '').replace(/([A-Z])/g, ' $1').trim())
+                          .join(', ') || '—'
+                      : '—'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex gap-2">
@@ -314,6 +373,35 @@ export default function UserManagementPage() {
                   <option value="Supervisor">Supervisor</option>
                   <option value="Admin">Admin</option>
                 </select>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Permission Overrides (optional)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                  {Object.entries(formData.permissions).map(([key, val]) => (
+                    <label key={key} className="inline-flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={val}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            permissions: { ...formData.permissions, [key]: e.target.checked },
+                          })
+                        }
+                        className="rounded"
+                      />
+                      <span className="text-gray-700">
+                        {key
+                          .replace('can', '')
+                          .replace(/([A-Z])/g, ' $1')
+                          .trim()}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Overrides add or restrict abilities beyond the base role. Leave unchecked to inherit defaults.
+                </p>
               </div>
               <div className="flex gap-2 pt-4">
                 <button

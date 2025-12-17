@@ -36,6 +36,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
+            permissions: user.permissions || {},
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -49,6 +50,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        // @ts-expect-error permissions is custom
+        token.permissions = user.permissions || {};
       }
       return token;
     },
@@ -56,6 +59,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as 'Admin' | 'Supervisor' | 'User';
+        // @ts-expect-error permissions is custom
+        session.user.permissions = token.permissions as any;
       }
       return session;
     },

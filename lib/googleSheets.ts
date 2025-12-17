@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { getSetting } from './settings';
 
 type AppendRowParams = {
   sheetId: string;
@@ -57,5 +58,26 @@ export async function appendSubmissionRow(params: {
     range: `${tabName}!A1`,
     values: [timestamp, formTitle || '', formId || '', phoneNumber || '', pairs],
   });
+}
+
+export async function resolveSheetsConfig() {
+  // Env takes precedence if present
+  const envSheetId = process.env.GOOGLE_SHEETS_ID;
+  const envSubmissionsTab = process.env.GOOGLE_SHEETS_TAB_SUBMISSIONS;
+  const envDailyTab = process.env.GOOGLE_SHEETS_TAB_DAILY;
+
+  if (envSheetId) {
+    return {
+      sheetId: envSheetId,
+      submissionsTab: envSubmissionsTab || 'Submissions',
+      dailyTab: envDailyTab || 'DailyReports',
+    };
+  }
+
+  const sheetId = await getSetting('GOOGLE_SHEETS_ID');
+  const submissionsTab = (await getSetting('GOOGLE_SHEETS_TAB_SUBMISSIONS')) || 'Submissions';
+  const dailyTab = (await getSetting('GOOGLE_SHEETS_TAB_DAILY')) || 'DailyReports';
+
+  return { sheetId: sheetId || '', submissionsTab, dailyTab };
 }
 

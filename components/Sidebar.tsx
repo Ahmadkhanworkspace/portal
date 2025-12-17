@@ -21,7 +21,8 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
   }, []);
 
   const userRole = session?.user?.role as 'Admin' | 'Supervisor' | 'User' | undefined;
-  const permissions = userRole ? getPermissions(userRole) : null;
+  const userPermOverrides = session?.user?.permissions;
+  const permissions = userRole ? getPermissions(userRole, userPermOverrides || undefined) : null;
 
   const allNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: null },
@@ -29,6 +30,7 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
     { href: '/requests', label: 'Requests', icon: Bell, badge: requestCount, permission: 'canManageRequests' as const },
     { href: '/ip-management', label: 'IP Management', icon: Network, permission: 'canManageIPs' as const },
     { href: '/user-management', label: 'User Management', icon: Users, permission: 'canManageUsers' as const },
+    { href: '/settings', label: 'Settings', icon: Sparkles, permission: 'canManageSettings' as const },
   ];
 
   // Filter nav items based on permissions
