@@ -5,9 +5,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { requirePermission } from '@/lib/permissions';
 export const runtime = 'nodejs';
 
-import PDFDocument from 'pdfkit';
-import * as XLSX from 'xlsx';
-
 function submissionsToRows(submissions: any[]) {
   return submissions.map((s) => ({
     id: s._id?.toString(),
@@ -22,6 +19,11 @@ function submissionsToRows(submissions: any[]) {
 
 export async function GET(request: NextRequest) {
   try {
+    const [{ default: PDFDocument }, XLSX] = await Promise.all([
+      import('pdfkit'),
+      import('xlsx'),
+    ]);
+
     const user = await getCurrentUser();
     if (!user || !requirePermission(user.role as any, 'canManageUsers')) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
