@@ -10,7 +10,13 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
-    const keys = ['GOOGLE_SHEETS_ID', 'GOOGLE_SHEETS_TAB_SUBMISSIONS', 'GOOGLE_SHEETS_TAB_DAILY'];
+    const keys = [
+      'GOOGLE_SHEETS_ID',
+      'GOOGLE_SHEETS_TAB_SUBMISSIONS',
+      'GOOGLE_SHEETS_TAB_DAILY',
+      'APP_NAME',
+      'APP_LOGO_URL',
+    ];
     const entries = await Promise.all(keys.map(async (key) => [key, await getSetting(key)] as const));
     const data: Record<string, string | null> = {};
     entries.forEach(([k, v]) => (data[k] = v));

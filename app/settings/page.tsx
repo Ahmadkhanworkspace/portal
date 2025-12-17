@@ -8,6 +8,8 @@ interface SettingsData {
   GOOGLE_SHEETS_ID?: string | null;
   GOOGLE_SHEETS_TAB_SUBMISSIONS?: string | null;
   GOOGLE_SHEETS_TAB_DAILY?: string | null;
+  APP_NAME?: string | null;
+  APP_LOGO_URL?: string | null;
 }
 
 export default function SettingsPage() {
@@ -20,6 +22,8 @@ export default function SettingsPage() {
     GOOGLE_SHEETS_ID: '',
     GOOGLE_SHEETS_TAB_SUBMISSIONS: 'Submissions',
     GOOGLE_SHEETS_TAB_DAILY: 'DailyReports',
+    APP_NAME: 'Portal',
+    APP_LOGO_URL: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,6 +40,8 @@ export default function SettingsPage() {
             GOOGLE_SHEETS_ID: result.data.GOOGLE_SHEETS_ID || '',
             GOOGLE_SHEETS_TAB_SUBMISSIONS: result.data.GOOGLE_SHEETS_TAB_SUBMISSIONS || 'Submissions',
             GOOGLE_SHEETS_TAB_DAILY: result.data.GOOGLE_SHEETS_TAB_DAILY || 'DailyReports',
+            APP_NAME: result.data.APP_NAME || 'Portal',
+            APP_LOGO_URL: result.data.APP_LOGO_URL || '',
           });
         } else {
           setMessage({ type: 'error', text: result.error || 'Failed to load settings' });
@@ -88,6 +94,30 @@ export default function SettingsPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Application Name</label>
+            <input
+              type="text"
+              value={settings.APP_NAME || ''}
+              onChange={(e) => setSettings({ ...settings, APP_NAME: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+              placeholder="e.g., My Portal"
+              disabled={loading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL (optional)</label>
+            <input
+              type="text"
+              value={settings.APP_LOGO_URL || ''}
+              onChange={(e) => setSettings({ ...settings, APP_LOGO_URL: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+              placeholder="https://example.com/logo.png"
+              disabled={loading}
+            />
+          </div>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Google Sheets ID</label>
           <input

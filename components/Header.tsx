@@ -8,9 +8,25 @@ export default function Header() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
+  const [brand, setBrand] = useState<{ name: string; logo?: string }>({ name: 'Portal' });
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const loadBrand = async () => {
+      try {
+        const res = await fetch('/api/settings/public');
+        const result = await res.json();
+        if (result.success) {
+          setBrand({ name: result.data.APP_NAME || 'Portal', logo: result.data.APP_LOGO_URL || '' });
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadBrand();
   }, []);
 
   const handleLogout = async () => {
@@ -23,7 +39,7 @@ export default function Header() {
   if (!mounted || status === 'loading') {
     return (
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-800">Comet Portal</h1>
+        <h1 className="text-xl font-bold text-gray-800">{brand.name}</h1>
         <div className="flex items-center gap-4">
           <div className="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
         </div>
@@ -37,7 +53,17 @@ export default function Header() {
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-      <h1 className="text-xl font-bold text-gray-800">Comet Portal</h1>
+      <div className="flex items-center gap-3">
+        {brand.logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={brand.logo} alt={brand.name} className="h-8 w-8 rounded-md object-contain" />
+        ) : (
+          <div className="h-8 w-8 rounded-md bg-blue-600 text-white flex items-center justify-center font-semibold">
+            {brand.name.slice(0, 2).toUpperCase()}
+          </div>
+        )}
+        <h1 className="text-xl font-bold text-gray-800">{brand.name}</h1>
+      </div>
       <div className="flex items-center gap-4">
         <span className="text-gray-700">{user.name || user.email}</span>
         <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-md font-medium">

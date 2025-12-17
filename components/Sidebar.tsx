@@ -15,9 +15,25 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
+  const [brand, setBrand] = useState<{ name: string; logo?: string }>({ name: 'Portal' });
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const loadBrand = async () => {
+      try {
+        const res = await fetch('/api/settings/public');
+        const result = await res.json();
+        if (result.success) {
+          setBrand({ name: result.data.APP_NAME || 'Portal', logo: result.data.APP_LOGO_URL || '' });
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadBrand();
   }, []);
 
   const userRole = session?.user?.role as 'Admin' | 'Supervisor' | 'User' | undefined;
@@ -44,12 +60,17 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
   const Shell = ({ children }: { children: React.ReactNode }) => (
     <div className="w-64 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white min-h-screen p-4">
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 border border-white/10 mb-4">
-        <div className="h-9 w-9 rounded-lg bg-white/20 flex items-center justify-center">
-          <Sparkles size={18} />
-        </div>
+        {brand.logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={brand.logo} alt={brand.name} className="h-9 w-9 rounded-lg object-contain bg-white/10" />
+        ) : (
+          <div className="h-9 w-9 rounded-lg bg-white/20 flex items-center justify-center font-semibold">
+            {brand.name.slice(0, 2).toUpperCase()}
+          </div>
+        )}
         <div className="leading-tight">
-          <p className="text-xs text-white/70">Comet Portal</p>
-          <p className="text-sm font-semibold">Admin Space</p>
+          <p className="text-xs text-white/70">Admin Space</p>
+          <p className="text-sm font-semibold">{brand.name}</p>
         </div>
       </div>
       {children}
