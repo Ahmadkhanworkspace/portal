@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Plus, X, Save } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -17,6 +17,14 @@ interface FormField {
 }
 
 export default function FormBuilderPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-gray-600">Loading form builder...</div>}>
+      <FormBuilderContent />
+    </Suspense>
+  );
+}
+
+function FormBuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editingId = searchParams.get('id');
