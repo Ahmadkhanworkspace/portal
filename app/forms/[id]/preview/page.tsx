@@ -103,6 +103,10 @@ export default function FormPreviewPage() {
     !phoneField ||
     (!!values[phoneField.id] && isValidUsPhone(values[phoneField.id]) && !duplicate);
 
+  const blockClipboard = (e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.preventDefault();
+  };
+
   const handleInputChange = (field: FormField, val: string) => {
     if (field.type === 'tel') {
       const formatted = formatUsPhone(val);
@@ -209,6 +213,12 @@ export default function FormPreviewPage() {
             const baseInput =
               'w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 text-black bg-white';
 
+            const clipboardProps = {
+              onPaste: blockClipboard,
+              onCopy: blockClipboard,
+              onCut: blockClipboard,
+            };
+
             return (
               <div key={idx}>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -223,6 +233,7 @@ export default function FormPreviewPage() {
                     onChange={(e) => handleInputChange(field, e.target.value)}
                     className={`${baseInput} border-gray-300 focus:ring-blue-500`}
                     placeholder={field.validation || ''}
+                    {...clipboardProps}
                   />
                 )}
                 {field.type === 'date' && (
@@ -232,6 +243,7 @@ export default function FormPreviewPage() {
                     disabled={disabled}
                     onChange={(e) => handleInputChange(field, e.target.value)}
                     className={`${baseInput} border-gray-300 focus:ring-blue-500`}
+                    {...clipboardProps}
                   />
                 )}
                 {field.type === 'radio' && field.options && (
@@ -246,6 +258,7 @@ export default function FormPreviewPage() {
                           disabled={disabled}
                           onChange={(e) => handleInputChange(field, e.target.value)}
                           className="mr-2"
+                          {...clipboardProps}
                         />
                         <span className="text-black">{option}</span>
                       </label>
@@ -258,6 +271,7 @@ export default function FormPreviewPage() {
                     disabled={disabled}
                     onChange={(e) => handleInputChange(field, e.target.value)}
                     className={`${baseInput} border-gray-300 focus:ring-blue-500`}
+                    {...clipboardProps}
                   >
                     <option value="">Select an option</option>
                     {field.options.map((option, optIdx) => (
@@ -274,6 +288,7 @@ export default function FormPreviewPage() {
                     onChange={(e) => handleInputChange(field, e.target.value)}
                     className={`${baseInput} border-gray-300 focus:ring-blue-500 resize-y`}
                     rows={4}
+                    {...clipboardProps}
                   />
                 )}
                 {field.type === 'checkbox' && (
@@ -284,6 +299,7 @@ export default function FormPreviewPage() {
                       disabled={disabled}
                       onChange={(e) => handleInputChange(field, e.target.checked ? 'true' : 'false')}
                       className="mr-2"
+                      {...clipboardProps}
                     />
                     <span className="text-black">I agree</span>
                   </label>
@@ -296,6 +312,7 @@ export default function FormPreviewPage() {
                     onChange={(e) => handleInputChange(field, e.target.value)}
                     className={`${baseInput} border-gray-300 focus:ring-blue-500`}
                     placeholder={field.validation || ''}
+                    {...clipboardProps}
                   />
                 )}
                 {field.type === 'tel' && (
@@ -308,6 +325,7 @@ export default function FormPreviewPage() {
                       duplicate ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
                     }`}
                     placeholder="(123) 456-7890"
+                    {...clipboardProps}
                   />
                 )}
                 {field.type === 'number' && (
@@ -318,6 +336,7 @@ export default function FormPreviewPage() {
                     onChange={(e) => handleInputChange(field, e.target.value)}
                     className={`${baseInput} border-gray-300 focus:ring-blue-500`}
                     placeholder={field.validation || ''}
+                    {...clipboardProps}
                   />
                 )}
                 {field.validation && !field.options && (
