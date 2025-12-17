@@ -19,11 +19,6 @@ function submissionsToRows(submissions: any[]) {
 
 export async function GET(request: NextRequest) {
   try {
-    const [{ default: PDFDocument }, XLSX] = await Promise.all([
-      import('pdfkit'),
-      import('xlsx'),
-    ]);
-
     const user = await getCurrentUser();
     if (!user || !requirePermission(user.role as any, 'canManageUsers')) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
@@ -63,6 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (format === 'xlsx') {
+      const XLSX = await import('xlsx');
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Submissions');
@@ -77,27 +73,39 @@ export async function GET(request: NextRequest) {
     }
 
     if (format === 'pdf') {
-      const doc = new PDFDocument({ margin: 30 });
-      const chunks: Uint8Array[] = [];
-      doc.on('data', (chunk) => chunks.push(chunk));
-      const done = new Promise<Buffer>((resolve) => {
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
+      const { PDFDocument, StandardFonts } = await import('pdf-lib');
+      const doc = await PDFDocument.create();
+      const font = await doc.embedFont(StandardFonts.Helvetica);
+      let page = doc.addPage([595, 842]); // A4
+      let y = 800;
+      const lineHeight = 12;
+      const maxWidth = 540;
+
+      const drawLine = (text: string, size = 10) => {
+        if (y < 40) {
+          page = doc.addPage([595, 842]);
+          y = 800;
+        }
+        page.drawText(text, { x: 30, y, size, font, maxWidth });
+        y -= lineHeight;
+      };
+
+      drawLine('Submissions', 14);
+      drawLine('--------------------', 10);
+
+      rows.forEach((r) => {
+        drawLine(`ID: ${r.id || ''}`);
+        drawLine(`Date: ${r.createdAt || ''}`);
+        drawLine(`Phone: ${r.phoneNumber || ''}`);
+        drawLine(`Form ID: ${r.formId || ''}`);
+        drawLine(`IP: ${r.ipAddress || ''}`);
+        drawLine(`User: ${r.submittedBy || ''}`);
+        drawLine(`Data: ${r.formData || ''}`);
+        drawLine(' ');
       });
 
-      doc.fontSize(16).text('Submissions', { underline: true });
-      doc.moveDown();
-      rows.forEach((r) => {
-        doc.fontSize(10).text(`ID: ${r.id || ''}`);
-        doc.text(`Date: ${r.createdAt || ''}`);
-        doc.text(`Phone: ${r.phoneNumber || ''}`);
-        doc.text(`Form ID: ${r.formId || ''}`);
-        doc.text(`IP: ${r.ipAddress || ''}`);
-        doc.text(`User: ${r.submittedBy || ''}`);
-        doc.text(`Data: ${r.formData || ''}`);
-        doc.moveDown();
-      });
-      doc.end();
-      const pdfBuffer = await done;
+      const pdfBytes = await doc.save();
+      const pdfBuffer = Buffer.from(pdfBytes);
       return new NextResponse(pdfBuffer, {
         status: 200,
         headers: {
