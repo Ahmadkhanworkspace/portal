@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<number[]>(Array(12).fill(0));
   const [chartLoading, setChartLoading] = useState(true);
+  const [chartError, setChartError] = useState('');
 
   useEffect(() => {
     fetchStats();
@@ -64,6 +65,7 @@ export default function DashboardPage() {
   const fetchChart = async () => {
     try {
       setChartLoading(true);
+      setChartError('');
       const res = await fetch('/api/submissions/summary');
       const result = await res.json();
       if (result.success) {
@@ -72,9 +74,13 @@ export default function DashboardPage() {
           if (m.month >= 1 && m.month <= 12) arr[m.month - 1] = m.count;
         });
         setChartData(arr);
+      } else {
+        setChartError(result.error || 'Failed to load submissions summary');
+        setChartData(Array(12).fill(0));
       }
     } catch (err) {
-      // ignore for now
+      setChartError((err as any)?.message || 'Failed to load submissions summary');
+      setChartData(Array(12).fill(0));
     } finally {
       setChartLoading(false);
     }
@@ -219,6 +225,12 @@ export default function DashboardPage() {
             <div className="mt-4">
               {chartLoading ? (
                 <div className="p-4 text-sm text-slate-500">Loading chart...</div>
+              ) : chartError ? (
+                <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
+                  {chartError}
+                </div>
+              ) : submissionsSeries.every((v) => v === 0) ? (
+                <div className="p-4 text-sm text-slate-500">No submissions yet.</div>
               ) : (
                 <div className="relative h-56">
                   <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full">
