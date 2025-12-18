@@ -9,7 +9,7 @@ import { appendRow, resolveSheetsConfig } from '@/lib/googleSheets';
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user || !requirePermission(user.role as any, 'canManageUsers')) {
+    if (!user || !requirePermission(user.role as any, 'canViewSubmissions', user.permissions as any)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
@@ -21,6 +21,8 @@ export async function POST(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const from = searchParams.get('from');
     const to = searchParams.get('to');
+    const userId = searchParams.get('userId');
+    const campaignId = searchParams.get('campaignId');
 
     const match: any = {};
     if (from || to) {
@@ -33,7 +35,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (userId) {
+      match.submittedBy = userId;
+    }
+
     await connectDB();
+
+    if (campaignId) {
+      const forms = await (await import('@/models/Form')).default.find({ campaign: campaignId }).select('_id').lean();
+      const formIds = forms.map((f: any) => f._id);
+      if (formIds.length === 0) {
+        return NextResponse.json({ success: true, count: 0 });
+      }
+      match.formId = { $in: formIds };
+    }
+
     const submissions = await FormSubmission.find(match).sort({ createdAt: -1 }).lean();
 
     for (const s of submissions) {

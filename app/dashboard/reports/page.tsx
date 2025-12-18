@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Download, FileSpreadsheet, FileText, FileDown, Sheet, Loader2 } from 'lucide-react';
+import { getPermissions } from '@/lib/permissions';
 import { useSession } from 'next-auth/react';
 
 interface Submission {
@@ -27,7 +28,11 @@ interface CampaignOption {
 
 export default function ReportsPage() {
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === 'Admin';
+  const permissions = useMemo(() => {
+    const role = session?.user?.role as 'Admin' | 'Supervisor' | 'User' | undefined;
+    return role ? getPermissions(role, session?.user?.permissions || undefined) : null;
+  }, [session]);
+  const canView = !!permissions?.canViewSubmissions;
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -64,14 +69,14 @@ export default function ReportsPage() {
   ];
 
   useEffect(() => {
-    if (!isAdmin) {
-      setError('Reports are restricted to Admins.');
+    if (!canView) {
+      setError('Reports are restricted to Admins and Supervisors.');
       setLoading(false);
       return;
     }
     fetchFilters();
     fetchSubs();
-  }, [isAdmin]);
+  }, [canView]);
 
   const fetchFilters = async () => {
     try {
@@ -164,11 +169,11 @@ export default function ReportsPage() {
     }
   };
 
-  if (!isAdmin) {
+  if (!canView) {
     return (
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports</h1>
-        <p className="text-gray-600">Reports are restricted to Admin users.</p>
+        <p className="text-gray-600">Reports are restricted to Admins and Supervisors.</p>
       </div>
     );
   }

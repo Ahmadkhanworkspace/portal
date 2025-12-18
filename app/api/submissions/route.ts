@@ -8,8 +8,7 @@ import { requirePermission } from '@/lib/permissions';
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user || !requirePermission(user.role as any, 'canManageUsers')) {
-      // canManageUsers is admin-only in current permissions
+    if (!user || !requirePermission(user.role as any, 'canViewSubmissions', user.permissions as any)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 

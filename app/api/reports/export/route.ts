@@ -20,13 +20,15 @@ function submissionsToRows(submissions: any[]) {
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user || !requirePermission(user.role as any, 'canManageUsers')) {
+    if (!user || !requirePermission(user.role as any, 'canViewSubmissions', user.permissions as any)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
     const format = request.nextUrl.searchParams.get('format') || 'csv';
     const from = request.nextUrl.searchParams.get('from');
     const to = request.nextUrl.searchParams.get('to');
+    const userId = request.nextUrl.searchParams.get('userId');
+    const campaignId = request.nextUrl.searchParams.get('campaignId');
 
     const match: any = {};
     if (from || to) {
@@ -39,7 +41,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    if (userId) {
+      match.submittedBy = userId;
+    }
+
     await connectDB();
+
+    if (campaignId) {
+      const forms = await (await import('@/models/Form')).default.find({ campaign: campaignId }).select('_id').lean();
+      const formIds = forms.map((f: any) => f._id);
+      if (formIds.length === 0) {
+        return NextResponse.json({ success: true, data: [] });
+      }
+      match.formId = { $in: formIds };
+    }
+
     const submissions = await FormSubmission.find(match).sort({ createdAt: -1 }).lean();
     const rows = submissionsToRows(submissions);
 
