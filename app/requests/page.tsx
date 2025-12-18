@@ -1,99 +1,191 @@
 'use client';
 
-import { useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Check, X, Loader2, RefreshCcw } from 'lucide-react';
 
 interface Request {
   id: string;
   type: string;
-  requester: string;
   details: string;
   status: 'Pending' | 'Approved' | 'Rejected';
-  createdAt: string;
+  createdAt?: string;
+  requester?: {
+    id: string;
+    name: string;
+    email?: string;
+  } | null;
+  reviewedBy?: {
+    id: string;
+    name: string;
+    email?: string;
+  } | null;
+  reviewedAt?: string;
 }
 
 export default function RequestsPage() {
-  const [requests] = useState<Request[]>([
-    {
-      id: '1',
-      type: 'IP Authorization',
-      requester: 'test.user1@cometportal.com',
-      details: 'Request to add IP: 192.168.1.50',
-      status: 'Pending',
-      createdAt: '2025-01-15',
-    },
-  ]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionId, setActionId] = useState('');
+  const [error, setError] = useState('');
 
-  const handleApprove = (id: string) => {
-    console.log('Approve request:', id);
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await fetch('/api/requests');
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to load requests');
+      }
+      setRequests(result.data || []);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load requests');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (id: string) => {
-    if (confirm('Are you sure you want to reject this request?')) {
-      console.log('Reject request:', id);
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const updateStatus = async (id: string, status: 'Approved' | 'Rejected') => {
+    try {
+      if (status === 'Rejected' && !confirm('Are you sure you want to reject this request?')) {
+        return;
+      }
+      setActionId(id);
+      setError('');
+      const res = await fetch(`/api/requests/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Update failed');
+      }
+      setRequests((prev) => prev.map((r) => (r.id === id ? result.data : r)));
+    } catch (err: any) {
+      setError(err.message || 'Failed to update request');
+    } finally {
+      setActionId('');
+    }
+  };
+
+  const statusClasses = (status: Request['status']) => {
+    switch (status) {
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      case 'Rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
     }
   };
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Requests ({requests.length})</h1>
-        <p className="text-gray-600">Manage user requests and approvals</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Requests ({requests.length})</h1>
+          <p className="text-gray-600">Manage user requests and approvals</p>
+        </div>
+        <button
+          onClick={fetchRequests}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-sm disabled:opacity-60"
+        >
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCcw size={16} />}
+          Refresh
+        </button>
       </div>
+
+      {error && (
+        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-amber-800 text-sm">
+          {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {requests.map((request) => (
-                <tr key={request.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.requester}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{request.details}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                      request.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {request.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.createdAt}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {request.status === 'Pending' && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApprove(request.id)}
-                          className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 transition-colors"
-                        >
-                          <Check size={14} className="inline mr-1" />
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(request.id)}
-                          className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 transition-colors"
-                        >
-                          <X size={14} className="inline mr-1" />
-                          Reject
-                        </button>
-                      </div>
-                    )}
-                  </td>
+          {loading ? (
+            <div className="p-6 flex items-center gap-3 text-gray-600 text-sm">
+              <Loader2 size={16} className="animate-spin" />
+              Loading requests...
+            </div>
+          ) : requests.length === 0 ? (
+            <div className="p-6 text-sm text-gray-600">No requests yet.</div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {requests.map((request) => (
+                  <tr key={request.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.type}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {request.requester?.name || 'Unknown'}
+                      {request.requester?.email ? (
+                        <span className="text-gray-500"> ({request.requester.email})</span>
+                      ) : null}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{request.details}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClasses(request.status)}`}>
+                        {request.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {request.createdAt ? new Date(request.createdAt).toLocaleString() : '—'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {request.status === 'Pending' ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => updateStatus(request.id, 'Approved')}
+                            disabled={!!actionId}
+                            className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 transition-colors disabled:opacity-60"
+                          >
+                            {actionId === request.id ? (
+                              <Loader2 size={14} className="inline mr-1 animate-spin" />
+                            ) : (
+                              <Check size={14} className="inline mr-1" />
+                            )}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => updateStatus(request.id, 'Rejected')}
+                            disabled={!!actionId}
+                            className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 transition-colors disabled:opacity-60"
+                          >
+                            {actionId === request.id ? (
+                              <Loader2 size={14} className="inline mr-1 animate-spin" />
+                            ) : (
+                              <X size={14} className="inline mr-1" />
+                            )}
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          Reviewed {request.reviewedAt ? new Date(request.reviewedAt).toLocaleString() : ''}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
