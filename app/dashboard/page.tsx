@@ -21,6 +21,7 @@ export default function DashboardPage() {
     totalUsers: 0,
     totalSubmissions: 0,
     authorizedIPs: 0,
+    mySubmissions: 0,
   });
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<number[]>(Array(12).fill(0));
@@ -79,26 +80,37 @@ export default function DashboardPage() {
     }
   };
 
-  const metrics = [
-    {
-      label: 'Total Forms',
-      value: stats.totalForms,
-      icon: ClipboardList,
-      accent: 'from-teal-400 to-emerald-500',
-    },
-    {
-      label: 'Total Users',
-      value: stats.totalUsers,
-      icon: Users,
-      accent: 'from-emerald-400 to-cyan-500',
-    },
-    {
-      label: 'Submissions',
-      value: stats.totalSubmissions,
-      icon: Database,
-      accent: 'from-blue-400 to-indigo-500',
-    },
-  ];
+  const isUser = session?.user?.role === 'User';
+
+  const metrics = isUser
+    ? [
+        {
+          label: 'My Submissions',
+          value: stats.mySubmissions || stats.totalSubmissions,
+          icon: Database,
+          accent: 'from-blue-400 to-indigo-500',
+        },
+      ]
+    : [
+        {
+          label: 'Total Forms',
+          value: stats.totalForms,
+          icon: ClipboardList,
+          accent: 'from-teal-400 to-emerald-500',
+        },
+        {
+          label: 'Total Users',
+          value: stats.totalUsers,
+          icon: Users,
+          accent: 'from-emerald-400 to-cyan-500',
+        },
+        {
+          label: 'Submissions',
+          value: stats.totalSubmissions,
+          icon: Database,
+          accent: 'from-blue-400 to-indigo-500',
+        },
+      ];
 
   const submissionsLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const submissionsSeries = chartData;
