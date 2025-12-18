@@ -25,9 +25,22 @@ export async function GET(request: NextRequest) {
     }
 
     const format = request.nextUrl.searchParams.get('format') || 'csv';
+    const from = request.nextUrl.searchParams.get('from');
+    const to = request.nextUrl.searchParams.get('to');
+
+    const match: any = {};
+    if (from || to) {
+      match.createdAt = {};
+      if (from) match.createdAt.$gte = new Date(from);
+      if (to) {
+        const dt = new Date(to);
+        dt.setHours(23, 59, 59, 999);
+        match.createdAt.$lte = dt;
+      }
+    }
 
     await connectDB();
-    const submissions = await FormSubmission.find({}).sort({ createdAt: -1 }).lean();
+    const submissions = await FormSubmission.find(match).sort({ createdAt: -1 }).lean();
     const rows = submissionsToRows(submissions);
 
     if (format === 'csv') {

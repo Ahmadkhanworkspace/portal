@@ -6,7 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { requirePermission } from '@/lib/permissions';
 import { appendRow, resolveSheetsConfig } from '@/lib/googleSheets';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || !requirePermission(user.role as any, 'canManageUsers')) {
@@ -18,8 +18,23 @@ export async function POST() {
       return NextResponse.json({ success: false, error: 'Sheets not configured' }, { status: 400 });
     }
 
+    const searchParams = request.nextUrl.searchParams;
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    const match: any = {};
+    if (from || to) {
+      match.createdAt = {};
+      if (from) match.createdAt.$gte = new Date(from);
+      if (to) {
+        const dt = new Date(to);
+        dt.setHours(23, 59, 59, 999);
+        match.createdAt.$lte = dt;
+      }
+    }
+
     await connectDB();
-    const submissions = await FormSubmission.find({}).sort({ createdAt: -1 }).lean();
+    const submissions = await FormSubmission.find(match).sort({ createdAt: -1 }).lean();
 
     for (const s of submissions) {
       const pairs = Object.entries(s.formData || {})

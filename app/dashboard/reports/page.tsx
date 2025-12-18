@@ -21,6 +21,8 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState<'csv' | 'xlsx' | 'pdf' | 'sheets' | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   useEffect(() => {
     if (!isAdmin) {
@@ -34,7 +36,10 @@ export default function ReportsPage() {
   const fetchSubs = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/submissions?limit=500');
+      const params = new URLSearchParams({ limit: '500' });
+      if (fromDate) params.append('from', fromDate);
+      if (toDate) params.append('to', toDate);
+      const res = await fetch(`/api/submissions?${params.toString()}`);
       const result = await res.json();
       if (result.success) {
         setSubmissions(result.data || []);
@@ -52,14 +57,20 @@ export default function ReportsPage() {
     try {
       setExporting(format);
       if (format === 'sheets') {
-        const res = await fetch('/api/reports/export/sheets', { method: 'POST' });
+        const params = new URLSearchParams();
+        if (fromDate) params.append('from', fromDate);
+        if (toDate) params.append('to', toDate);
+        const res = await fetch(`/api/reports/export/sheets?${params.toString()}`, { method: 'POST' });
         const result = await res.json();
         if (!result.success) {
           setError(result.error || 'Sheets export failed');
         }
         return;
       }
-      const res = await fetch(`/api/reports/export?format=${format}`);
+      const params = new URLSearchParams({ format });
+      if (fromDate) params.append('from', fromDate);
+      if (toDate) params.append('to', toDate);
+      const res = await fetch(`/api/reports/export?${params.toString()}`);
       if (!res.ok) {
         setError('Export failed');
         return;
@@ -91,10 +102,32 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-1">Reports</h1>
           <p className="text-gray-600">Export submissions as PDF, CSV, XLSX, or push to Google Sheets.</p>
+        </div>
+        <div className="flex flex-wrap gap-2 items-center">
+          <label className="text-sm text-slate-700">From</label>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+          />
+          <label className="text-sm text-slate-700">To</label>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+          />
+          <button
+            onClick={fetchSubs}
+            className="inline-flex items-center gap-1 px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 transition"
+          >
+            Apply
+          </button>
         </div>
         <div className="flex flex-wrap gap-2">
           <ExportButton

@@ -12,12 +12,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
-    await connectDB();
-
     const searchParams = request.nextUrl.searchParams;
     const limit = Math.min(Number(searchParams.get('limit') || '500'), 2000);
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
 
-    const submissions = await FormSubmission.find({})
+    const match: any = {};
+    if (from || to) {
+      match.createdAt = {};
+      if (from) match.createdAt.$gte = new Date(from);
+      if (to) {
+        const dt = new Date(to);
+        dt.setHours(23, 59, 59, 999);
+        match.createdAt.$lte = dt;
+      }
+    }
+
+    await connectDB();
+
+    const submissions = await FormSubmission.find(match)
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
