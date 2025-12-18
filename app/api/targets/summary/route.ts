@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     });
 
     const bonusCfg = await loadBonusConfig();
-    const targetValue = targetDoc?.target ?? 0;
+    const targetValue = (!targetDoc || Array.isArray(targetDoc)) ? 0 : (targetDoc as any)?.target ?? 0;
     const bonus = achieved * bonusCfg.perSubmission + (targetValue && achieved >= targetValue ? bonusCfg.onTarget : 0);
     const completion = targetValue > 0 ? Math.min(100, Math.round((achieved / targetValue) * 100)) : 0;
 
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         achieved,
         bonus,
         completion,
-        targetId: targetDoc?._id || null,
+        targetId: (!targetDoc || Array.isArray(targetDoc)) ? null : targetDoc._id || null,
       },
     });
   } catch (error: any) {
