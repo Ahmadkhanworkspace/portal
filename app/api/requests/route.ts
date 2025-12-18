@@ -82,6 +82,13 @@ export async function POST(request: NextRequest) {
       .populate('requester', 'name email')
       .lean();
 
+    if (!populated || Array.isArray(populated)) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to load created request' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
