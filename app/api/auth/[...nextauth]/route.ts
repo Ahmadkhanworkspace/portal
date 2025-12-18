@@ -22,25 +22,29 @@ export const authOptions: NextAuthOptions = {
           const identifier = credentials.identifier.toLowerCase().trim();
           const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
-          });
+          }).lean();
 
           if (!user) {
             return null;
           }
 
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            (user as any).password
+          );
 
           if (!isPasswordValid) {
             return null;
           }
 
+          const u: any = user;
           return {
-            id: user._id.toString(),
-            email: user.email,
-            username: user.username,
-            name: user.name,
-            role: user.role,
-            permissions: user.permissions || {},
+            id: u._id?.toString?.() || '',
+            email: u.email,
+            username: u.username,
+            name: u.name,
+            role: u.role,
+            permissions: u.permissions || {},
           };
         } catch (error) {
           console.error('Auth error:', error);

@@ -11,8 +11,6 @@ interface SettingsData {
   GOOGLE_SHEETS_TAB_DAILY?: string | null;
   APP_NAME?: string | null;
   APP_LOGO_URL?: string | null;
-  EMPLOYEE_LEAD_MODE?: 'auto' | 'manual' | '' | null;
-  EMPLOYEE_CALENDLY_URL?: string | null;
   CHAT_RATE_LIMIT_PER_MINUTE?: string | null;
   CHAT_MESSAGE_MAX_LENGTH?: string | null;
   CHAT_HISTORY_LIMIT?: string | null;
@@ -54,8 +52,6 @@ export default function SettingsPage() {
     GOOGLE_SHEETS_TAB_DAILY: 'DailyReports',
     APP_NAME: 'Portal',
     APP_LOGO_URL: '',
-    EMPLOYEE_LEAD_MODE: 'auto',
-    EMPLOYEE_CALENDLY_URL: '',
     CHAT_RATE_LIMIT_PER_MINUTE: '15',
     CHAT_MESSAGE_MAX_LENGTH: '500',
     CHAT_HISTORY_LIMIT: '50',
@@ -90,8 +86,6 @@ export default function SettingsPage() {
             GOOGLE_SHEETS_TAB_DAILY: result.data.GOOGLE_SHEETS_TAB_DAILY || 'DailyReports',
             APP_NAME: result.data.APP_NAME || 'Portal',
             APP_LOGO_URL: result.data.APP_LOGO_URL || '',
-            EMPLOYEE_LEAD_MODE: (result.data.EMPLOYEE_LEAD_MODE as 'auto' | 'manual') || 'auto',
-            EMPLOYEE_CALENDLY_URL: result.data.EMPLOYEE_CALENDLY_URL || '',
             CHAT_RATE_LIMIT_PER_MINUTE: result.data.CHAT_RATE_LIMIT_PER_MINUTE || '15',
             CHAT_MESSAGE_MAX_LENGTH: result.data.CHAT_MESSAGE_MAX_LENGTH || '500',
             CHAT_HISTORY_LIMIT: result.data.CHAT_HISTORY_LIMIT || '50',
@@ -360,39 +354,6 @@ export default function SettingsPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
               disabled={loading}
             />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Lead Creation Mode</label>
-            <div className="flex gap-4">
-              {['auto', 'manual'].map((mode) => (
-                <label key={mode} className="flex items-center gap-2 text-sm text-gray-800">
-                  <input
-                    type="radio"
-                    name="leadMode"
-                    value={mode}
-                    checked={settings.EMPLOYEE_LEAD_MODE === mode}
-                    onChange={() => setSettings({ ...settings, EMPLOYEE_LEAD_MODE: mode as 'auto' | 'manual' })}
-                  />
-                  {mode === 'auto' ? 'Auto-create lead from major form' : 'Manual (create only when triggered)'}
-                </label>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Calendly URL (optional)</label>
-            <input
-              type="text"
-              value={settings.EMPLOYEE_CALENDLY_URL || ''}
-              onChange={(e) => setSettings({ ...settings, EMPLOYEE_CALENDLY_URL: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
-              placeholder="https://calendly.com/your-link"
-              disabled={loading}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Shown on the employee major form for scheduling.
-            </p>
           </div>
         </div>
         <div className="border-t border-slate-100 pt-4">
