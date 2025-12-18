@@ -14,6 +14,17 @@ interface Submission {
   formData?: Record<string, any>;
 }
 
+interface UserOption {
+  id: string;
+  name: string;
+  email?: string;
+}
+
+interface CampaignOption {
+  id: string;
+  name: string;
+}
+
 export default function ReportsPage() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'Admin';
@@ -23,6 +34,10 @@ export default function ReportsPage() {
   const [exporting, setExporting] = useState<'csv' | 'xlsx' | 'pdf' | 'sheets' | null>(null);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignOption[]>([]);
+  const [userFilter, setUserFilter] = useState('');
+  const [campaignFilter, setCampaignFilter] = useState('');
   const presets = [
     { label: 'Today', range: () => {
       const d = new Date();
@@ -54,8 +69,40 @@ export default function ReportsPage() {
       setLoading(false);
       return;
     }
+    fetchFilters();
     fetchSubs();
   }, [isAdmin]);
+
+  const fetchFilters = async () => {
+    try {
+      const [usersRes, campaignsRes] = await Promise.all([
+        fetch('/api/users'),
+        fetch('/api/campaigns'),
+      ]);
+      const usersJson = await usersRes.json();
+      const campaignsJson = await campaignsRes.json();
+      if (usersJson?.success) {
+        setUsers(
+          (usersJson.data || []).map((u: any) => ({
+            id: u._id,
+            name: u.name,
+            email: u.email,
+          }))
+        );
+      }
+      if (campaignsJson?.success) {
+        setCampaigns(
+          (campaignsJson.data || []).map((c: any) => ({
+            id: c._id,
+            name: c.name,
+          }))
+        );
+      }
+    } catch (err) {
+      // ignore silently; filters are optional
+      console.error('Failed to load filter options', err);
+    }
+  };
 
   const fetchSubs = async () => {
     try {
@@ -63,6 +110,8 @@ export default function ReportsPage() {
       const params = new URLSearchParams({ limit: '500' });
       if (fromDate) params.append('from', fromDate);
       if (toDate) params.append('to', toDate);
+       if (userFilter) params.append('userId', userFilter);
+       if (campaignFilter) params.append('campaignId', campaignFilter);
       const res = await fetch(`/api/submissions?${params.toString()}`);
       const result = await res.json();
       if (result.success) {
@@ -146,6 +195,30 @@ export default function ReportsPage() {
             onChange={(e) => setToDate(e.target.value)}
             className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm bg-white"
           />
+          <select
+            value={userFilter}
+            onChange={(e) => setUserFilter(e.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm bg-white min-w-[160px]"
+          >
+            <option value="">All Users</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name} {u.email ? `(${u.email})` : ''}
+              </option>
+            ))}
+          </select>
+          <select
+            value={campaignFilter}
+            onChange={(e) => setCampaignFilter(e.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm bg-white min-w-[160px]"
+          >
+            <option value="">All Campaigns</option>
+            {campaigns.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <button
             onClick={fetchSubs}
             disabled={loading}

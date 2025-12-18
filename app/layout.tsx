@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import ChatFab from "@/components/ChatFab";
 
 const roboto = Roboto({
   variable: "--font-geist-sans",
@@ -31,7 +32,10 @@ export default function RootLayout({
         className={`${roboto.variable} ${robotoMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <ChatFab />
+        </Providers>
       </body>
     </html>
   );

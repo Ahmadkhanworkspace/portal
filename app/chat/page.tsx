@@ -20,6 +20,8 @@ export default function ChatPage() {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionCaret, setMentionCaret] = useState(0);
   const [status, setStatus] = useState<'connecting' | 'live' | 'offline'>('connecting');
   const [error, setError] = useState('');
   const [banned, setBanned] = useState<{ reason?: string | null } | null>(null);
@@ -28,8 +30,28 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const userId = session?.user?.id;
+  const currentName = session?.user?.name?.toLowerCase?.() || '';
+  const currentUsername = session?.user?.username?.toLowerCase?.() || '';
 
   const sortedMessages = useMemo(() => messages, [messages]);
+  const participants = useMemo(() => {
+    const seen = new Map<string, string>();
+    messages.forEach((m) => {
+      if (m.userName) {
+        seen.set(m.userName.toLowerCase(), m.userName);
+      }
+    });
+    if (session?.user?.name) {
+      seen.set(session.user.name.toLowerCase(), session.user.name);
+    }
+    return Array.from(seen.values()).sort();
+  }, [messages, session?.user?.name]);
+
+  const mentionSuggestions = useMemo(() => {
+    if (!mentionQuery) return participants;
+    const q = mentionQuery.toLowerCase();
+    return participants.filter((p) => p.toLowerCase().startsWith(q));
+  }, [mentionQuery, participants]);
 
   useEffect(() => {
     const loadInitial = async () => {
@@ -93,6 +115,34 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [sortedMessages.length]);
 
+  const handleInputChange = (value: string, caretPos: number | null) => {
+    setInput(value);
+    const caret = caretPos ?? value.length;
+    setMentionCaret(caret);
+    const before = value.slice(0, caret);
+    const match = /(^|\s)@([a-zA-Z0-9_.-]{0,24})$/i.exec(before);
+    if (match) {
+      setMentionQuery(match[2]);
+    } else {
+      setMentionQuery('');
+    }
+  };
+
+  const insertMention = (name: string) => {
+    const caret = mentionCaret;
+    const before = input.slice(0, caret);
+    const after = input.slice(caret);
+    const match = /(^|\s)@([a-zA-Z0-9_.-]{0,24})$/i.exec(before);
+    if (!match) {
+      return;
+    }
+    const start = (match.index ?? 0) + match[1].length;
+    const prefix = before.slice(0, start);
+    const newValue = `${prefix}@${name} ${after}`;
+    setInput(newValue);
+    setMentionQuery('');
+  };
+
   const sendMessage = async () => {
     if (sending || !input.trim() || banned) return;
     const body = input.trim().slice(0, limits.maxMessageLength);
@@ -109,6 +159,7 @@ export default function ChatPage() {
         throw new Error(result.error || 'Failed to send message');
       }
       setInput('');
+      setMentionQuery('');
     } catch (err: any) {
       setError(err.message || 'Failed to send message');
       if (err.message?.toLowerCase()?.includes('banned')) {
@@ -122,6 +173,27 @@ export default function ChatPage() {
   const formatTime = (value: string) => {
     const date = new Date(value);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const renderContent = (text: string) => {
+    const parts = text.split(/(@[A-Za-z0-9_.-]+)/g);
+    return parts.map((part, idx) => {
+      if (!part.startsWith('@')) {
+        return <span key={idx}>{part}</span>;
+      }
+      const mention = part.slice(1);
+      const isMe =
+        mention.toLowerCase() === currentName ||
+        mention.toLowerCase() === currentUsername;
+      return (
+        <span
+          key={idx}
+          className={`px-1 rounded ${isMe ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700'}`}
+        >
+          {part}
+        </span>
+      );
+    });
   };
 
   return (
@@ -202,7 +274,9 @@ export default function ChatPage() {
                         {formatTime(msg.createdAt)}
                       </span>
                     </div>
-                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                    <p className="whitespace-pre-wrap break-words">
+                      {renderContent(msg.content)}
+                    </p>
                   </div>
                 </div>
               );
@@ -212,10 +286,10 @@ export default function ChatPage() {
         </div>
 
         <div className="border-t border-slate-200 p-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 relative">
             <textarea
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => handleInputChange(e.target.value, e.currentTarget.selectionStart)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -232,6 +306,20 @@ export default function ChatPage() {
               rows={2}
               maxLength={limits.maxMessageLength}
             />
+            {mentionQuery && mentionSuggestions.length > 0 && (
+              <div className="absolute bottom-16 left-0 right-24 bg-white border border-slate-200 shadow-lg rounded-xl overflow-hidden z-20 max-h-48 overflow-y-auto">
+                {mentionSuggestions.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => insertMention(name)}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 focus:bg-slate-100"
+                  >
+                    @{name}
+                  </button>
+                ))}
+              </div>
+            )}
             <button
               onClick={sendMessage}
               disabled={sending || status !== 'live' || !!banned || !input.trim()}
