@@ -2,7 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Bell, Network, Users, Sparkles, Activity, Megaphone, MessageSquare } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FileText,
+  Bell,
+  Network,
+  Users,
+  Sparkles,
+  Activity,
+  Megaphone,
+  MessageSquare,
+  Target,
+  Gift,
+  Trophy,
+  FolderKanban,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { getPermissions } from '@/lib/permissions';
@@ -41,19 +55,35 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
   const permissions = userRole ? getPermissions(userRole, userPermOverrides || undefined) : null;
 
   const allNavItems = [
+    // Common / everyone
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: null },
     { href: '/chat', label: 'Team Chat', icon: MessageSquare, permission: null },
+
+    // Admin / supervisors
     { href: '/campaigns', label: 'Campaigns', icon: Megaphone, permission: 'canManageForms' as const },
     { href: '/forms', label: 'Forms', icon: FileText, permission: 'canManageForms' as const },
     { href: '/requests', label: 'Requests', icon: Bell, badge: requestCount, permission: 'canManageRequests' as const },
     { href: '/user-management', label: 'User Management', icon: Users, permission: 'canManageUsers' as const },
     { href: '/settings', label: 'Settings', icon: Sparkles, permission: 'canManageSettings' as const },
     { href: '/dashboard/reports', label: 'Reports', icon: Activity, permission: 'canManageUsers' as const },
+    { href: '/monthly-targets', label: 'Monthly Targets', icon: Target, permission: 'canManageUsers' as const, roles: ['Admin'] as const },
+    { href: '/bonuses', label: 'Bonuses', icon: Gift, permission: 'canManageUsers' as const, roles: ['Admin'] as const },
+
+    // Agent / supervisor views (no special permissions, role-gated)
+    { href: '/agent/reports', label: 'Reports', icon: Activity, permission: null, roles: ['User', 'Supervisor'] as const },
+    { href: '/agent/submitted-leads', label: 'Submitted Leads', icon: FileText, permission: null, roles: ['User', 'Supervisor'] as const },
+    { href: '/agent/achieved-targets', label: 'Achieved Targets', icon: Trophy, permission: null, roles: ['User', 'Supervisor'] as const },
+    { href: '/agent/bonuses', label: 'Bonuses', icon: Gift, permission: null, roles: ['User', 'Supervisor'] as const },
+    { href: '/agent/campaigns', label: 'Campaign Forms', icon: FolderKanban, permission: null, roles: ['User', 'Supervisor'] as const },
   ];
 
   // Filter nav items based on permissions
   const navItems = allNavItems.filter(item => {
-    if (!item.permission) return true; // Dashboard is always visible
+    // role gate first if specified
+    if (item.roles && (!userRole || !(item.roles as readonly string[]).includes(userRole))) {
+      return false;
+    }
+    if (!item.permission) return true; // visible if no permission requirement
     if (!permissions) return false;
     return permissions[item.permission];
   });
