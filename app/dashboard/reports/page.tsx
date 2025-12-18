@@ -23,6 +23,30 @@ export default function ReportsPage() {
   const [exporting, setExporting] = useState<'csv' | 'xlsx' | 'pdf' | 'sheets' | null>(null);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const presets = [
+    { label: 'Today', range: () => {
+      const d = new Date();
+      const iso = d.toISOString().slice(0,10);
+      return { from: iso, to: iso };
+    }},
+    { label: 'Last 7 days', range: () => {
+      const to = new Date();
+      const from = new Date();
+      from.setDate(to.getDate() - 6);
+      return { from: from.toISOString().slice(0,10), to: to.toISOString().slice(0,10) };
+    }},
+    { label: 'Last 30 days', range: () => {
+      const to = new Date();
+      const from = new Date();
+      from.setDate(to.getDate() - 29);
+      return { from: from.toISOString().slice(0,10), to: to.toISOString().slice(0,10) };
+    }},
+    { label: 'This month', range: () => {
+      const to = new Date();
+      const from = new Date(to.getFullYear(), to.getMonth(), 1);
+      return { from: from.toISOString().slice(0,10), to: to.toISOString().slice(0,10) };
+    }},
+  ];
 
   useEffect(() => {
     if (!isAdmin) {
@@ -128,6 +152,22 @@ export default function ReportsPage() {
           >
             Apply
           </button>
+          <div className="flex flex-wrap gap-1">
+            {presets.map((p) => (
+              <button
+                key={p.label}
+                onClick={() => {
+                  const r = p.range();
+                  setFromDate(r.from);
+                  setToDate(r.to);
+                  setTimeout(fetchSubs, 0);
+                }}
+                className="px-2 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <ExportButton
