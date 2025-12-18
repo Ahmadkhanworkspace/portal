@@ -62,7 +62,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const campaignId = `CMP-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
     const campaign = await Campaign.create({
+      campaignId,
       name: body.name,
       description: body.description,
       createdBy: dbUser._id,

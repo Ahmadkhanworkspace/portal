@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICampaign extends Document {
+  campaignId: string;
   name: string;
   description?: string;
   createdBy: mongoose.Types.ObjectId;
@@ -10,6 +11,12 @@ export interface ICampaign extends Document {
 
 const CampaignSchema = new Schema<ICampaign>(
   {
+    campaignId: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
     name: {
       type: String,
       required: true,

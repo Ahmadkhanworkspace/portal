@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { getPermissions } from '@/lib/permissions';
-import { Plus, Pencil, Trash2, Save, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Copy } from 'lucide-react';
 
 interface Campaign {
   _id: string;
+  campaignId?: string;
   name: string;
   description?: string;
   createdAt: string;
 }
 
 export default function CampaignsPage() {
+  const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -72,6 +75,14 @@ export default function CampaignsPage() {
         setCampaigns([result.data, ...campaigns]);
         setName('');
         setDescription('');
+        // Prompt to build form
+        const created = result.data as Campaign;
+        if (created?._id && confirm('Campaign created. Would you like to build the form now?')) {
+          const params = new URLSearchParams();
+          if (created.campaignId) params.append('campaignId', created.campaignId);
+          params.append('campaignName', created.name);
+          router.push(`/form-builder?${params.toString()}`);
+        }
       } else {
         setError(result.error || 'Failed to create campaign');
       }
@@ -244,6 +255,12 @@ export default function CampaignsPage() {
                 ) : (
                   <>
                     <h3 className="text-lg font-bold text-gray-800 mb-1">{campaign.name}</h3>
+                    {campaign.campaignId && (
+                      <div className="flex items-center gap-1 text-xs text-slate-600 mb-1">
+                        <span className="font-semibold">ID:</span>
+                        <span>{campaign.campaignId}</span>
+                      </div>
+                    )}
                     {campaign.description && (
                       <p className="text-sm text-gray-600 mb-2">{campaign.description}</p>
                     )}
