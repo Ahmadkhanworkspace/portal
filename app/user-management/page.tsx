@@ -202,131 +202,98 @@ export default function UserManagementPage() {
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600 mb-4">Manage forms, IP addresses, and submissions</p>
-        
-        <div className="flex gap-4 border-b border-gray-200 mb-6">
-          {[
-            { name: 'Dashboard', href: '/dashboard' },
-            { name: 'Forms', href: '/forms' },
-            { name: 'Submissions', href: '/dashboard?tab=Submissions' },
-            { name: 'Requests', href: '/requests' },
-            { name: 'IP Management', href: '/ip-management' },
-            { name: 'User Management', href: '/user-management' },
-          ].map((tab) => {
-            const isActive = pathname === tab.href || (tab.href.includes('?') && pathname === tab.href.split('?')[0]);
-            return (
-              <Link
-                key={tab.name}
-                href={tab.href}
-                className={`pb-3 px-4 ${
-                  isActive
-                    ? 'border-b-2 border-blue-600 text-blue-600 font-medium'
-                    : 'text-gray-600 hover:text-gray-800'
-                } transition-colors`}
-              >
-                {tab.name}
-              </Link>
-            );
-          })}
-        </div>
+    <div className="p-4 md:p-6 bg-[#f6f9fc] min-h-screen">
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold text-gray-900">User Management</h1>
+        <p className="text-sm text-gray-600">Manage system users and their roles</p>
+      </div>
 
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-            <p className="text-gray-600">Manage system users and their roles</p>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 border-b border-slate-200">
+          <div className="text-sm text-gray-700">
+            Total Users <span className="font-semibold">({users.length})</span>
           </div>
           <button
             onClick={handleAddUser}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-md hover:bg-emerald-600 transition"
           >
-            <Plus size={20} />
+            <Plus size={18} />
             Add User
           </button>
         </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-800">All Users ({users.length})</h3>
-        </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overrides</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-3 text-left">User ID</th>
+                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-left">Email</th>
+                <th className="px-4 py-3 text-left">Username</th>
+                <th className="px-4 py-3 text-left">Role</th>
+                <th className="px-4 py-3 text-left">Overrides</th>
+                <th className="px-4 py-3 text-left">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
                     Loading users...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user._id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email || '—'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.username || '—'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">••••••••</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.permissions
-                      ? Object.entries(user.permissions)
-                          .filter(([_, v]) => v)
-                          .map(([k]) => k.replace('can', '').replace(/([A-Z])/g, ' $1').trim())
-                          .join(', ') || '—'
-                      : '—'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors"
-                      >
-                        <Edit size={14} className="inline mr-1" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user._id)}
-                        className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 transition-colors"
-                      >
-                        <Trash2 size={14} className="inline mr-1" />
-                        Delete
-                      </button>
-                      <button
-                        onClick={() => handleResetPassword(user._id)}
-                        className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200 transition-colors"
-                      >
-                        <Key size={14} className="inline mr-1" />
-                        Reset Password
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                  <tr key={user._id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 text-slate-800">{user._id}</td>
+                    <td className="px-4 py-3 text-slate-800">{user.name}</td>
+                    <td className="px-4 py-3 text-slate-700">{user.email || '—'}</td>
+                    <td className="px-4 py-3 text-slate-700">{user.username || '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {user.permissions
+                        ? Object.entries(user.permissions)
+                            .filter(([_, v]) => v)
+                            .map(([k]) => k.replace('can', '').replace(/([A-Z])/g, ' $1').trim())
+                            .join(', ') || '—'
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="inline-flex items-center gap-1 border border-slate-200 text-slate-700 px-3 py-1 rounded hover:bg-slate-100 transition"
+                        >
+                          <Edit size={14} />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user._id)}
+                          className="inline-flex items-center gap-1 border border-red-200 text-red-700 px-3 py-1 rounded hover:bg-red-50 transition"
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => handleResetPassword(user._id)}
+                          className="inline-flex items-center gap-1 border border-amber-200 text-amber-700 px-3 py-1 rounded hover:bg-amber-50 transition"
+                        >
+                          <Key size={14} />
+                          Reset Password
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
