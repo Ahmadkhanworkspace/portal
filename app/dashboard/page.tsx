@@ -5,23 +5,16 @@ import {
   Users,
   Database,
   Globe,
-  Plus,
-  Settings,
-  Sparkles,
   ShieldCheck,
   TrendingUp,
-  Activity,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
 const cardBase =
   'bg-white border border-slate-100 shadow-sm rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg';
 
 export default function DashboardPage() {
-  const pathname = usePathname();
   const { data: session } = useSession();
   const [stats, setStats] = useState({
     totalForms: 0,
@@ -86,16 +79,6 @@ export default function DashboardPage() {
     }
   };
 
-  const isAdmin = session?.user?.role === 'Admin';
-
-  const tabs = [
-    { name: 'Forms', href: '/forms' },
-    { name: 'Submissions', href: '/dashboard?tab=Submissions' },
-    { name: 'Requests', href: '/requests' },
-    { name: 'User Management', href: '/user-management', adminOnly: true },
-    { name: 'Reports', href: '/dashboard/reports', adminOnly: true },
-  ].filter((tab) => !tab.adminOnly || isAdmin);
-
   const metrics = [
     {
       label: 'Total Forms',
@@ -114,12 +97,6 @@ export default function DashboardPage() {
       value: stats.totalSubmissions,
       icon: Database,
       accent: 'from-blue-400 to-indigo-500',
-    },
-    {
-      label: 'Authorized IPs',
-      value: stats.authorizedIPs,
-      icon: Globe,
-      accent: 'from-amber-400 to-orange-500',
     },
   ];
 
@@ -151,26 +128,6 @@ export default function DashboardPage() {
             <p className="mt-2 text-white/80 max-w-2xl">
               Track forms, users, submissions, and integrations with a modern UI.
             </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {tabs.map((tab) => {
-                const isActive =
-                  pathname === tab.href ||
-                  (tab.href.includes('?') && pathname === tab.href.split('?')[0]);
-                return (
-                  <Link
-                    key={tab.name}
-                    href={tab.href}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                      isActive
-                        ? 'bg-white text-slate-900 shadow-sm'
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    {tab.name}
-                  </Link>
-                );
-              })}
-            </div>
           </div>
           <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
@@ -278,26 +235,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className={`${cardBase} bg-white`}>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-slate-500">Quick Actions</p>
-                <h3 className="text-lg font-semibold text-slate-900">Work faster</h3>
-              </div>
-              <Sparkles className="text-slate-600" size={18} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <CTA href="/form-builder" icon={<Plus size={18} />} label="New Form" variant="primary" />
-              <CTA href="/ip-management" icon={<Globe size={18} />} label="Add IP" variant="success" />
-              <CTA href="/forms" icon={<Settings size={18} />} label="Manage Forms" />
-              <CTA
-                href="/dashboard?tab=Submissions"
-                icon={<Database size={18} />}
-                label="View Submissions"
-              />
-              <CTA href="/settings" icon={<Activity size={18} />} label="Settings" variant="neutral" />
-            </div>
-          </div>
         </div>
 
         <div className="space-y-4">
@@ -315,29 +252,9 @@ export default function DashboardPage() {
                 <span>Database</span>
                 <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Connected</span>
               </li>
-              <li className="flex items-center justify-between">
-                <span>IP Guard</span>
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                  {stats.authorizedIPs} authorized
-                </span>
-              </li>
             </ul>
           </div>
 
-          <div className={`${cardBase} bg-white`}>
-            <p className="text-sm text-slate-500">Shortcuts</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {tabs.map((tab) => (
-                <Link
-                  key={tab.name}
-                  href={tab.href}
-                  className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition"
-                >
-                  {tab.name}
-                </Link>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -369,37 +286,6 @@ function ProgressRow({
         />
       </div>
     </div>
-  );
-}
-
-function CTA({
-  href,
-  icon,
-  label,
-  variant = 'neutral',
-}: {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-  variant?: 'primary' | 'success' | 'neutral';
-}) {
-  const styles = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    success: 'bg-emerald-600 text-white hover:bg-emerald-700',
-    neutral: 'bg-slate-100 text-slate-800 hover:bg-slate-200',
-  }[variant];
-
-  return (
-    <Link
-      href={href}
-      className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition ${styles}`}
-    >
-      <span className="flex items-center gap-2">
-        {icon}
-        {label}
-      </span>
-      <span className="text-xs opacity-80">Go</span>
-    </Link>
   );
 }
 
