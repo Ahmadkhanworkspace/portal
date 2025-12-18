@@ -44,7 +44,7 @@ export async function PATCH(
       .populate('reviewedBy', 'name email')
       .lean();
 
-    if (!updated) {
+    if (!updated || Array.isArray(updated)) {
       return NextResponse.json({ success: false, error: 'Request not found' }, { status: 404 });
     }
 
