@@ -26,15 +26,16 @@ async function loadBonusConfig() {
   };
 }
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     const user = await getCurrentUser();
     if (!user || !requirePermission(user.role as any, 'canManageUsers', user.permissions)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
     await connectDB();
-    const target = await Target.findById(params.id).populate('user', 'name email username role').lean();
+    const target = await Target.findById(id).populate('user', 'name email username role').lean();
     if (!target) {
       return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
     }
@@ -57,8 +58,9 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     const user = await getCurrentUser();
     if (!user || !requirePermission(user.role as any, 'canManageUsers', user.permissions)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
@@ -78,7 +80,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (typeof target === 'number') updates.target = target;
     if (typeof note === 'string') updates.note = note;
 
-    const updated = await Target.findByIdAndUpdate(params.id, updates, { new: true }).populate(
+    const updated = await Target.findByIdAndUpdate(id, updates, { new: true }).populate(
       'user',
       'name email username role'
     );
@@ -106,15 +108,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     const user = await getCurrentUser();
     if (!user || !requirePermission(user.role as any, 'canManageUsers', user.permissions)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
     await connectDB();
-    await Target.findByIdAndDelete(params.id);
+    await Target.findByIdAndDelete(id);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message || 'Failed to delete target' }, { status: 500 });
