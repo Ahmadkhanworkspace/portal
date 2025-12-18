@@ -8,7 +8,7 @@ import type { PipelineStage } from 'mongoose';
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user || !requirePermission(user.role as any, 'canViewSubmissions', user.permissions)) {
+    if (!user) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const from = searchParams.get('from');
     const to = searchParams.get('to');
+    const scope = searchParams.get('scope'); // 'self' to restrict to current user
 
     let startOfYear: Date | undefined = undefined;
     const match: Record<string, any> = {};
@@ -31,6 +32,13 @@ export async function GET(req: NextRequest) {
     } else {
       startOfYear = new Date(new Date().getFullYear(), 0, 1);
       match.createdAt = { $gte: startOfYear };
+    }
+
+    if (scope === 'self') {
+      match.submittedBy = user.id;
+    } else if (!requirePermission(user.role as any, 'canViewSubmissions', user.permissions)) {
+      // If not self scope and user lacks permission, fall back to self scope
+      match.submittedBy = user.id;
     }
 
     const pipeline: PipelineStage[] = [

@@ -60,7 +60,8 @@ export default function DashboardPage() {
     try {
       setChartLoading(true);
       setChartError('');
-      const res = await fetch('/api/submissions/summary');
+      const scope = session?.user?.role === 'User' ? 'self' : undefined;
+      const res = await fetch(`/api/submissions/summary${scope ? `?scope=${scope}` : ''}`);
       const result = await res.json();
       if (result.success) {
         const arr: number[] = Array(12).fill(0);
@@ -115,6 +116,13 @@ export default function DashboardPage() {
   const submissionsLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const submissionsSeries = chartData;
   const maxValue = Math.max(...submissionsSeries, 1);
+
+  const targetProgress = (() => {
+    const achieved = stats.mySubmissions || 0;
+    const target =  stats.totalSubmissions && isUser ? stats.totalSubmissions : 0;
+    const pct = target > 0 ? Math.round((achieved / target) * 100) : 0;
+    return { achieved, target, pct: Math.min(100, pct) };
+  })();
   const points = submissionsSeries
     .map((v, i) => {
       const x = (i / (submissionsSeries.length - 1)) * 100;
@@ -246,7 +254,6 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-
         </div>
 
         <div className="space-y-4">
@@ -267,6 +274,51 @@ export default function DashboardPage() {
             </ul>
           </div>
 
+          {isUser && (
+            <div className={`${cardBase} bg-white`}>
+              <p className="text-sm text-slate-500">Target progress</p>
+              <h3 className="text-lg font-semibold text-slate-900">This month</h3>
+              <div className="mt-4 flex items-center gap-4">
+                <div className="relative h-24 w-24">
+                  <svg viewBox="0 0 36 36" className="h-full w-full">
+                    <path
+                      className="text-slate-200"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      fill="none"
+                      strokeLinecap="round"
+                      d="M18 2.75a15.25 15.25 0 1 1 0 30.5 15.25 15.25 0 1 1 0-30.5"
+                    />
+                    <path
+                      className="text-emerald-500"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${targetProgress.pct}, 100`}
+                      d="M18 2.75a15.25 15.25 0 1 1 0 30.5 15.25 15.25 0 1 1 0-30.5"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-slate-900">{targetProgress.pct}%</div>
+                      <div className="text-[11px] text-slate-500">achieved</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-1 text-sm text-slate-700">
+                  <div className="flex items-center justify-between w-full gap-6">
+                    <span>Achieved</span>
+                    <span className="font-semibold">{targetProgress.achieved}</span>
+                  </div>
+                  <div className="flex items-center justify-between w-full gap-6">
+                    <span>Target</span>
+                    <span className="font-semibold">{targetProgress.target || '—'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
