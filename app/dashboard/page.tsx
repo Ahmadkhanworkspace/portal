@@ -134,13 +134,20 @@ export default function DashboardPage() {
     })
     .join(' ');
 
+  const roleTitle =
+    session?.user?.role === 'Admin'
+      ? 'Admin Dashboard'
+      : session?.user?.role === 'Supervisor'
+      ? 'Supervisor Dashboard'
+      : 'Agent Dashboard';
+
   return (
     <div className="space-y-6 bg-[#f6f9fc] min-h-screen -mx-6 px-6 pb-10">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white p-6 md:p-8 shadow-lg">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_45%)]" />
         <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
+            <h1 className="text-3xl md:text-4xl font-bold">{roleTitle}</h1>
             <p className="mt-2 text-white/80 max-w-2xl">
               Track forms, users, submissions, and integrations with a modern UI.
             </p>
