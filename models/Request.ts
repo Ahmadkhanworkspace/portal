@@ -4,6 +4,10 @@ export interface IRequest extends Document {
   type: string;
   requester: mongoose.Types.ObjectId;
   details: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  message?: string;
   status: 'Pending' | 'Approved' | 'Rejected';
   reviewedBy?: mongoose.Types.ObjectId;
   reviewedAt?: Date;
@@ -26,6 +30,20 @@ const RequestSchema = new Schema<IRequest>(
     details: {
       type: String,
       required: true,
+    },
+    title: {
+      type: String,
+      trim: true,
+    },
+    name: {
+      type: String,
+      trim: true,
+    },
+    description: {
+      type: String,
+    },
+    message: {
+      type: String,
     },
     status: {
       type: String,

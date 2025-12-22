@@ -92,6 +92,8 @@ export async function PUT(
       role: body.role,
       permissions: body.permissions,
       allowedFormFields: body.allowedFormFields ?? [],
+      salary: body.salary ?? 0,
+      bonus: body.bonus ?? 0,
     };
 
     // If password is being updated, hash it

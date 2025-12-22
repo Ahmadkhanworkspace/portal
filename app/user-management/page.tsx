@@ -16,6 +16,8 @@ interface User {
   role: 'Admin' | 'Supervisor' | 'User';
   permissions?: Record<string, boolean>;
   allowedFormFields?: string[];
+  salary?: number;
+  bonus?: number;
 }
 
 interface FormField {
@@ -51,6 +53,8 @@ export default function UserManagementPage() {
       canManageSettings: false,
     },
     allowedFormFields: [] as string[],
+    salary: 0,
+    bonus: 0,
   });
 
   const permissions = useMemo(() => {
@@ -116,6 +120,8 @@ export default function UserManagementPage() {
         canManageSettings: false,
       },
       allowedFormFields: [],
+      salary: 0,
+      bonus: 0,
     });
     setShowAddModal(true);
   };
@@ -141,6 +147,8 @@ export default function UserManagementPage() {
         canManageSettings: user.permissions?.canManageSettings ?? false,
       },
       allowedFormFields: user.allowedFormFields || [],
+      salary: user.salary ?? 0,
+      bonus: user.bonus ?? 0,
     });
     setShowAddModal(true);
   };
@@ -411,35 +419,61 @@ export default function UserManagementPage() {
                   <option value="Admin">Admin</option>
                 </select>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Permission Overrides (optional)</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                  {Object.entries(formData.permissions).map(([key, val]) => (
-                    <label key={key} className="inline-flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={val}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            permissions: { ...formData.permissions, [key]: e.target.checked },
-                          })
-                        }
-                        className="rounded"
-                      />
-                      <span className="text-gray-700">
-                        {key
-                          .replace('can', '')
-                          .replace(/([A-Z])/g, ' $1')
-                          .trim()}
-                      </span>
-                    </label>
-                  ))}
+              {(formData.role === 'User' || formData.role === 'Supervisor') && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Salary</p>
+                  <input
+                    type="number"
+                    value={formData.salary}
+                    onChange={(e) => setFormData({ ...formData, salary: parseFloat(e.target.value) || 0 })}
+                    placeholder="Enter salary amount"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+                  />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Overrides add or restrict abilities beyond the base role. Leave unchecked to inherit defaults.
-                </p>
-              </div>
+              )}
+              {(formData.role === 'User' || formData.role === 'Supervisor') && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Bonus</p>
+                  <input
+                    type="number"
+                    value={formData.bonus}
+                    onChange={(e) => setFormData({ ...formData, bonus: parseFloat(e.target.value) || 0 })}
+                    placeholder="Enter bonus amount"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+                  />
+                </div>
+              )}
+              {(formData.role === 'User' || formData.role === 'Supervisor') && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Permission Overrides (optional)</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    {Object.entries(formData.permissions).map(([key, val]) => (
+                      <label key={key} className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={val}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              permissions: { ...formData.permissions, [key]: e.target.checked },
+                            })
+                          }
+                          className="rounded"
+                        />
+                        <span className="text-gray-700">
+                          {key
+                            .replace('can', '')
+                            .replace(/([A-Z])/g, ' $1')
+                            .trim()}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Overrides add or restrict abilities beyond the base role. Leave unchecked to inherit defaults.
+                  </p>
+                </div>
+              )}
               {formData.role === 'User' && (
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-2">

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
     const body = await request.json();
-    const { name, email, username, password, role, permissions, allowedFormFields } = body;
+    const { name, email, username, password, role, permissions, allowedFormFields, salary, bonus } = body;
 
     if (!username && !email) {
       return NextResponse.json(
@@ -82,6 +82,8 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
       permissions: permissions ?? undefined,
       allowedFormFields: allowedFormFields ?? [],
+      salary: salary ?? 0,
+      bonus: bonus ?? 0,
     };
 
     const newUser = await User.create({

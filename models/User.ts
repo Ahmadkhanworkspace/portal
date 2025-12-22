@@ -20,6 +20,8 @@ export interface IUser extends Document {
   role: 'Admin' | 'Supervisor' | 'User';
   permissions?: IUserPermissions;
   allowedFormFields?: string[]; // Array of field names/IDs the user can see in submissions
+  salary?: number;
+  bonus?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,6 +73,14 @@ const UserSchema = new Schema<IUser>(
     allowedFormFields: {
       type: [String],
       default: [],
+    },
+    salary: {
+      type: Number,
+      default: 0,
+    },
+    bonus: {
+      type: Number,
+      default: 0,
     },
   },
   {

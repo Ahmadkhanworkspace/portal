@@ -23,6 +23,10 @@ export async function GET() {
       id: r._id?.toString?.() || '',
       type: r.type,
       details: r.details,
+      title: r.title,
+      name: r.name,
+      description: r.description,
+      message: r.message,
       status: r.status,
       createdAt: r.createdAt,
       requester: r.requester
@@ -63,6 +67,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const type = (body?.type || '').toString().trim();
     const details = (body?.details || '').toString().trim();
+    const title = (body?.title || '').toString().trim();
+    const name = (body?.name || '').toString().trim();
+    const description = (body?.description || '').toString().trim();
+    const message = (body?.message || '').toString().trim();
 
     if (!type || !details) {
       return NextResponse.json(
@@ -74,6 +82,10 @@ export async function POST(request: NextRequest) {
     const created = await RequestModel.create({
       type,
       details,
+      title,
+      name,
+      description,
+      message,
       requester: user.id,
       status: 'Pending',
     });
@@ -96,6 +108,10 @@ export async function POST(request: NextRequest) {
           id: populated?._id?.toString?.() || '',
           type: populated?.type,
           details: populated?.details,
+          title: populated?.title,
+          name: populated?.name,
+          description: populated?.description,
+          message: populated?.message,
           status: populated?.status,
           createdAt: populated?.createdAt,
           requester: populated?.requester
