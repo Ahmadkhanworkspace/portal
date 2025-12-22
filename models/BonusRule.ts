@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IBonusRule extends Document {
   user: mongoose.Types.ObjectId;
   campaign: mongoose.Types.ObjectId;
-  productGrade: string; // e.g., "small egg", "bigger egg", "12 eggs"
+  productGrade: string;
   bonusAmount: number; // Bonus amount for this product grade
   target?: number; // Optional base target for this product grade
   isActive: boolean;

@@ -438,11 +438,11 @@ export default function BonusesPage() {
                   type="text"
                   value={ruleForm.productGrade}
                   onChange={(e) => setRuleForm({ ...ruleForm, productGrade: e.target.value })}
-                  placeholder="e.g., small egg, bigger egg, 12 eggs"
+                  placeholder="e.g., Basic, Standard, Premium"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Product grade name (e.g., "small egg", "bigger egg"). This should match the productGrade in form submissions.
+                  Product grade name. This should match the productGrade in form submissions.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">

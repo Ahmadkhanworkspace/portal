@@ -2,6 +2,7 @@ import BonusRule from '@/models/BonusRule';
 import FormSubmission from '@/models/FormSubmission';
 import { getSetting } from '@/lib/settings';
 import mongoose from 'mongoose';
+import '@/models/Form';
 
 interface BonusConfig {
   perSubmission: number;

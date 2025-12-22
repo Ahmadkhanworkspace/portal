@@ -386,7 +386,7 @@ export default function FormPreviewPage() {
                 type="text"
                 value={productGrade}
                 onChange={(e) => setProductGrade(e.target.value)}
-                placeholder="e.g., small egg, bigger egg, 12 eggs"
+                placeholder="e.g., Basic, Standard, Premium"
                 className="w-full px-4 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
               />
               <p className="text-xs text-gray-600 mt-1">
