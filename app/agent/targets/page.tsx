@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Target, Trophy, Activity, RefreshCw } from 'lucide-react';
+import { Target, Trophy, Activity, RefreshCw, FileText } from 'lucide-react';
 
 interface Summary {
   period: string;
   target: number;
+  submitted: number;
   achieved: number;
   bonus: number;
   completion: number;
@@ -18,6 +19,7 @@ export default function AgentTargetsPage() {
   const [summary, setSummary] = useState<Summary>({
     period: currentMonth(),
     target: 0,
+    submitted: 0,
     achieved: 0,
     bonus: 0,
     completion: 0,
@@ -76,14 +78,23 @@ export default function AgentTargetsPage() {
 
       {error && <div className="text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded">{error}</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
           <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
             <Target size={16} className="text-blue-600" />
             Target
           </div>
           <div className="text-3xl font-semibold text-gray-900">{summary.target}</div>
-          <p className="text-xs text-slate-500">Period: {summary.period}</p>
+          <p className="text-xs text-slate-500">Allocated by supervisor/admin</p>
+          <p className="text-xs text-slate-400 mt-1">Period: {summary.period}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+          <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
+            <FileText size={16} className="text-purple-600" />
+            Submitted
+          </div>
+          <div className="text-3xl font-semibold text-gray-900">{summary.submitted || 0}</div>
+          <p className="text-xs text-slate-500">Total submissions this month</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
           <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
@@ -91,7 +102,7 @@ export default function AgentTargetsPage() {
             Achieved
           </div>
           <div className="text-3xl font-semibold text-gray-900">{summary.achieved}</div>
-          <p className="text-xs text-slate-500">Submissions counted for this month</p>
+          <p className="text-xs text-slate-500">Submissions counted for target</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
           <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
@@ -99,6 +110,7 @@ export default function AgentTargetsPage() {
             Bonus
           </div>
           <div className="text-3xl font-semibold text-gray-900">{summary.bonus?.toLocaleString() || 0}</div>
+          <p className="text-xs text-slate-500">Calculated bonus</p>
         </div>
       </div>
 

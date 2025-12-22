@@ -53,10 +53,14 @@ export async function GET(request: NextRequest) {
     const targetDoc = await Target.findOne({ user: targetUserId, period }).lean();
     const { start, end } = getMonthRange(period);
 
-    const achieved = await FormSubmission.countDocuments({
+    // Total submissions (submitted)
+    const submitted = await FormSubmission.countDocuments({
       submittedBy: targetUserId,
       createdAt: { $gte: start, $lte: end },
     });
+
+    // Achieved submissions (currently same as submitted, but can be filtered later)
+    const achieved = submitted;
 
     const bonusCfg = await loadBonusConfig();
     const targetValue = (!targetDoc || Array.isArray(targetDoc)) ? 0 : (targetDoc as any)?.target ?? 0;
@@ -68,6 +72,7 @@ export async function GET(request: NextRequest) {
       data: {
         period,
         target: targetValue,
+        submitted,
         achieved,
         bonus,
         completion,
