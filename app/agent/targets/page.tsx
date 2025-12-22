@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Target, Trophy, Activity, RefreshCw, FileText } from 'lucide-react';
-import Link from 'next/link';
+import { Target, Trophy, Activity, RefreshCw } from 'lucide-react';
 
 interface Summary {
   period: string;
@@ -118,22 +117,6 @@ export default function AgentTargetsPage() {
             />
           </div>
           <span className="text-sm text-slate-700 font-medium">{progress}%</span>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Need more detail?</h3>
-            <p className="text-sm text-gray-600">Open your submissions list to see what counts toward this target.</p>
-          </div>
-          <Link
-            href="/agent/submissions"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition"
-          >
-            <FileText size={16} />
-            View my submissions
-          </Link>
         </div>
       </div>
     </div>
