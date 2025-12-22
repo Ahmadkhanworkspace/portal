@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { getCurrentUser } from '@/lib/auth';
 import FormSubmission from '@/models/FormSubmission';
+import User from '@/models/User';
+import Form from '@/models/Form';
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,9 +30,43 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const submissions = await FormSubmission.find(match).sort({ createdAt: -1 }).limit(limit).lean();
+    // Get user's allowed form fields
+    const dbUser = await User.findById(user.id).select('allowedFormFields');
+    const allowedFields = dbUser?.allowedFormFields || [];
 
-    return NextResponse.json({ success: true, data: submissions });
+    const submissions = await FormSubmission.find(match)
+      .populate('formId', 'fields')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    // Filter formData based on allowed fields if restrictions exist
+    const filteredSubmissions = submissions.map((submission: any) => {
+      if (allowedFields.length > 0 && submission.formData && submission.formId?.fields) {
+        // Create a map of field ID to field name
+        const fieldIdToName = new Map<string, string>();
+        submission.formId.fields.forEach((field: any) => {
+          fieldIdToName.set(field.id, field.name);
+        });
+
+        const filteredFormData: Record<string, any> = {};
+        Object.keys(submission.formData).forEach(key => {
+          const fieldName = fieldIdToName.get(key);
+          // Check if this field name is in the allowed list
+          if (fieldName && allowedFields.includes(fieldName)) {
+            filteredFormData[key] = submission.formData[key];
+          }
+        });
+        
+        return {
+          ...submission,
+          formData: filteredFormData,
+        };
+      }
+      return submission;
+    });
+
+    return NextResponse.json({ success: true, data: filteredSubmissions });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message || 'Failed to fetch submissions' }, { status: 500 });
   }

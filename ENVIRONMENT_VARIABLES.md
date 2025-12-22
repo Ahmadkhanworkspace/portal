@@ -86,6 +86,94 @@ NODE_ENV=production
 
 ---
 
+### Google Sheets Integration
+
+The following variables are required if you want to enable Google Sheets integration for exporting form submissions and reports.
+
+#### `GOOGLE_SA_EMAIL`
+**Description**: Google Service Account email address  
+**Required**: Yes (if using Google Sheets)  
+**Example**:
+```
+GOOGLE_SA_EMAIL=comet-portal-sheets@your-project.iam.gserviceaccount.com
+```
+
+**How to get**: 
+1. Create a Google Cloud project
+2. Create a service account
+3. The email will be in the format: `service-account-name@project-id.iam.gserviceaccount.com`
+4. See [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md) for detailed instructions
+
+---
+
+#### `GOOGLE_SA_PRIVATE_KEY`
+**Description**: Private key for the Google Service Account  
+**Required**: Yes (if using Google Sheets)  
+**Example**:
+```
+GOOGLE_SA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n"
+```
+
+**How to get**:
+1. Download the service account JSON key file from Google Cloud Console
+2. Extract the `private_key` field from the JSON
+3. Keep the entire key including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`
+4. Wrap it in quotes and preserve the `\n` characters
+5. See [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md) for detailed instructions
+
+**Important**: 
+- Must be wrapped in double quotes
+- Must include the `\n` characters (they're already in the JSON)
+- Never commit this to version control
+
+---
+
+#### `GOOGLE_SHEETS_ID`
+**Description**: Google Sheet ID where data will be exported  
+**Required**: No (can be set via Settings page instead)  
+**Example**:
+```
+GOOGLE_SHEETS_ID=1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
+```
+
+**How to get**:
+1. Open your Google Sheet
+2. Look at the URL: `https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`
+3. Copy the long string between `/d/` and `/edit`
+4. Share the sheet with your service account email (Editor permissions)
+
+**Note**: This can also be configured via the Settings page in the application.
+
+---
+
+#### `GOOGLE_SHEETS_TAB_SUBMISSIONS`
+**Description**: Name of the tab in Google Sheets for form submissions  
+**Required**: No  
+**Default**: `Submissions`  
+**Example**:
+```
+GOOGLE_SHEETS_TAB_SUBMISSIONS=Submissions
+```
+
+**Note**: This can also be configured via the Settings page in the application.
+
+---
+
+#### `GOOGLE_SHEETS_TAB_DAILY`
+**Description**: Name of the tab in Google Sheets for daily reports  
+**Required**: No  
+**Default**: `DailyReports`  
+**Example**:
+```
+GOOGLE_SHEETS_TAB_DAILY=DailyReports
+```
+
+**Note**: This can also be configured via the Settings page in the application.
+
+**For complete Google Sheets setup instructions, see [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md)**
+
+---
+
 ## Environment Variable Setup
 
 ### Local Development
@@ -197,6 +285,13 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/comet-portal?ret
 # NextAuth
 NEXTAUTH_SECRET=generate-a-32-character-secret-here
 NEXTAUTH_URL=http://localhost:3000
+
+# Google Sheets (Optional)
+GOOGLE_SA_EMAIL=your-service-account@project.iam.gserviceaccount.com
+GOOGLE_SA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+GOOGLE_SHEETS_ID=your_google_sheet_id
+GOOGLE_SHEETS_TAB_SUBMISSIONS=Submissions
+GOOGLE_SHEETS_TAB_DAILY=DailyReports
 ```
 
 ---

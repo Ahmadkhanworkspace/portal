@@ -11,7 +11,6 @@ import {
   Sparkles,
   Activity,
   Megaphone,
-  MessageSquare,
   Target,
   Gift,
   Trophy,
@@ -57,7 +56,6 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
   const allNavItems = [
     // Common / everyone
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: null },
-    { href: '/chat', label: 'Team Chat', icon: MessageSquare, permission: null },
 
     // Admin / supervisors
     { href: '/campaigns', label: 'Campaigns', icon: Megaphone, permission: 'canManageForms' as const },

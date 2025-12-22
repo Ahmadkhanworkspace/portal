@@ -91,6 +91,7 @@ export async function PUT(
       username: body.username ? body.username.toLowerCase().trim() : undefined,
       role: body.role,
       permissions: body.permissions,
+      allowedFormFields: body.allowedFormFields ?? [],
     };
 
     // If password is being updated, hash it

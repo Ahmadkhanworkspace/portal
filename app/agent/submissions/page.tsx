@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { RefreshCw, Calendar, FileText } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { RefreshCw, Calendar, FileText, Search } from 'lucide-react';
 
 interface SubmissionRow {
   _id: string;
   createdAt: string;
-  formId: string;
+  formId: {
+    _id: string;
+    fields?: Array<{ id: string; name: string; type: string }>;
+  } | string;
   phoneNumber?: string;
   formData?: Record<string, any>;
 }
@@ -15,6 +18,7 @@ export default function AgentSubmissionsPage() {
   const [submissions, setSubmissions] = useState<SubmissionRow[]>([]);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +46,40 @@ export default function AgentSubmissionsPage() {
   }, []);
 
   const formatDate = (value: string) => new Date(value).toLocaleString();
+
+  // Filter submissions based on search query
+  const filteredSubmissions = useMemo(() => {
+    if (!searchQuery.trim()) return submissions;
+    
+    const query = searchQuery.toLowerCase();
+    return submissions.filter(submission => {
+      // Search in phone number
+      if (submission.phoneNumber?.toLowerCase().includes(query)) return true;
+      
+      // Search in form data values
+      if (submission.formData) {
+        const formDataStr = JSON.stringify(submission.formData).toLowerCase();
+        if (formDataStr.includes(query)) return true;
+      }
+      
+      // Search in form ID
+      const formIdStr = typeof submission.formId === 'string' 
+        ? submission.formId 
+        : submission.formId?._id || '';
+      if (formIdStr.toLowerCase().includes(query)) return true;
+      
+      return false;
+    });
+  }, [submissions, searchQuery]);
+
+  // Helper to get field name from field ID
+  const getFieldName = (submission: SubmissionRow, fieldId: string): string => {
+    if (typeof submission.formId === 'object' && submission.formId?.fields) {
+      const field = submission.formId.fields.find(f => f.id === fieldId);
+      return field?.name || fieldId;
+    }
+    return fieldId;
+  };
 
   return (
     <div className="space-y-5">
@@ -99,13 +137,29 @@ export default function AgentSubmissionsPage() {
             </button>
           </div>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+            <Search size={14} />
+            Search
+          </label>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by phone, form data, or form ID..."
+            className="w-full px-3 py-2 border border-slate-200 rounded-md text-black bg-white"
+          />
+        </div>
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Recent submissions</h3>
-            <p className="text-sm text-gray-600">Limited to your user account.</p>
+            <p className="text-sm text-gray-600">
+              Limited to your user account.
+              {searchQuery && ` Showing ${filteredSubmissions.length} of ${submissions.length} results`}
+            </p>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -115,26 +169,39 @@ export default function AgentSubmissionsPage() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Submitted</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Form</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Phone</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Preview</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">Form Data</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {submissions.map((s) => (
+              {filteredSubmissions.map((s) => (
                 <tr key={s._id} className="hover:bg-slate-50/50">
                   <td className="px-4 py-3 text-sm text-slate-800">{formatDate(s.createdAt)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-800">{s.formId}</td>
+                  <td className="px-4 py-3 text-sm text-slate-800">
+                    {typeof s.formId === 'string' ? s.formId : s.formId?._id || '—'}
+                  </td>
                   <td className="px-4 py-3 text-sm text-slate-800">{s.phoneNumber || '—'}</td>
                   <td className="px-4 py-3 text-sm text-slate-800">
-                    <pre className="text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-md p-2 max-w-xs overflow-auto">
-                      {JSON.stringify(s.formData || {}, null, 2)}
-                    </pre>
+                    {s.formData && Object.keys(s.formData).length > 0 ? (
+                      <div className="space-y-1">
+                        {Object.entries(s.formData).map(([fieldId, value]) => (
+                          <div key={fieldId} className="text-xs">
+                            <span className="font-medium text-slate-700">
+                              {getFieldName(s, fieldId)}:
+                            </span>{' '}
+                            <span className="text-slate-600">{String(value || '—')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400">No data</span>
+                    )}
                   </td>
                 </tr>
               ))}
-              {!submissions.length && (
+              {!filteredSubmissions.length && (
                 <tr>
                   <td colSpan={4} className="px-4 py-6 text-center text-sm text-slate-500">
-                    {loading ? 'Loading submissions...' : 'No submissions found.'}
+                    {loading ? 'Loading submissions...' : searchQuery ? 'No submissions match your search.' : 'No submissions found.'}
                   </td>
                 </tr>
               )}

@@ -15,6 +15,13 @@ interface User {
   username?: string;
   role: 'Admin' | 'Supervisor' | 'User';
   permissions?: Record<string, boolean>;
+  allowedFormFields?: string[];
+}
+
+interface FormField {
+  name: string;
+  id: string;
+  type: string;
 }
 
 export default function UserManagementPage() {
@@ -24,6 +31,8 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [availableFields, setAvailableFields] = useState<FormField[]>([]);
+  const [loadingFields, setLoadingFields] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,6 +50,7 @@ export default function UserManagementPage() {
       canCreateForms: false,
       canManageSettings: false,
     },
+    allowedFormFields: [] as string[],
   });
 
   const permissions = useMemo(() => {
@@ -51,7 +61,23 @@ export default function UserManagementPage() {
 
   useEffect(() => {
     fetchUsers();
+    fetchAvailableFields();
   }, []);
+
+  const fetchAvailableFields = async () => {
+    try {
+      setLoadingFields(true);
+      const response = await fetch('/api/forms/fields');
+      const result = await response.json();
+      if (result.success) {
+        setAvailableFields(result.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch form fields:', err);
+    } finally {
+      setLoadingFields(false);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -89,6 +115,7 @@ export default function UserManagementPage() {
         canCreateForms: false,
         canManageSettings: false,
       },
+      allowedFormFields: [],
     });
     setShowAddModal(true);
   };
@@ -113,6 +140,7 @@ export default function UserManagementPage() {
         canCreateForms: user.permissions?.canCreateForms ?? false,
         canManageSettings: user.permissions?.canManageSettings ?? false,
       },
+      allowedFormFields: user.allowedFormFields || [],
     });
     setShowAddModal(true);
   };
@@ -178,6 +206,7 @@ export default function UserManagementPage() {
           username: formData.username,
           role: formData.role,
           permissions: formData.permissions,
+          allowedFormFields: formData.allowedFormFields,
         };
         if (formData.password) {
           updateData.password = formData.password;
@@ -411,6 +440,51 @@ export default function UserManagementPage() {
                   Overrides add or restrict abilities beyond the base role. Leave unchecked to inherit defaults.
                 </p>
               </div>
+              {formData.role === 'User' && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Allowed Form Fields (for submissions view)
+                  </p>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Select which form fields this agent can see in their submissions. Leave empty to show all fields.
+                  </p>
+                  {loadingFields ? (
+                    <p className="text-sm text-gray-500">Loading fields...</p>
+                  ) : availableFields.length === 0 ? (
+                    <p className="text-sm text-gray-500">No form fields available. Create forms first.</p>
+                  ) : (
+                    <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        {availableFields.map((field) => (
+                          <label key={field.name} className="inline-flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={formData.allowedFormFields.includes(field.name)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({
+                                    ...formData,
+                                    allowedFormFields: [...formData.allowedFormFields, field.name],
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    allowedFormFields: formData.allowedFormFields.filter(f => f !== field.name),
+                                  });
+                                }
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-gray-700">
+                              {field.name} <span className="text-gray-400 text-xs">({field.type})</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex gap-2 pt-4">
                 <button
                   onClick={handleSave}

@@ -19,9 +19,11 @@ export interface IUser extends Document {
   password: string;
   role: 'Admin' | 'Supervisor' | 'User';
   permissions?: IUserPermissions;
+  allowedFormFields?: string[]; // Array of field names/IDs the user can see in submissions
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 const UserSchema = new Schema<IUser>(
   {
@@ -65,6 +67,10 @@ const UserSchema = new Schema<IUser>(
       canEditForms: { type: Boolean },
       canCreateForms: { type: Boolean },
       canManageSettings: { type: Boolean },
+    },
+    allowedFormFields: {
+      type: [String],
+      default: [],
     },
   },
   {
