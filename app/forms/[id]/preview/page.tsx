@@ -359,7 +359,7 @@ export default function FormPreviewPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {formData.fields.map((field, idx) => {
               const value = values[field.id] ?? '';
-              const disabled = numberField && field.id !== numberField.id && !canProceed;
+              const disabled = !!(numberField && field.id !== numberField.id && !canProceed);
               const baseInput =
                 'w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 text-black bg-white';
 
