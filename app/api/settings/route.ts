@@ -21,6 +21,7 @@ export async function GET() {
       'CHAT_HISTORY_LIMIT',
       'BONUS_PER_SUBMISSION',
       'BONUS_TARGET_BONUS',
+      'SHOW_SALARY_BONUS',
     ];
     const entries = await Promise.all(keys.map(async (key) => [key, await getSetting(key)] as const));
     const data: Record<string, string | null> = {};

@@ -31,6 +31,7 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
   const [brand, setBrand] = useState<{ name: string; logo?: string }>({ name: 'Portal' });
+  const [showSalaryBonus, setShowSalaryBonus] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -43,6 +44,9 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
         const result = await res.json();
         if (result.success) {
           setBrand({ name: result.data.APP_NAME || 'Portal', logo: result.data.APP_LOGO_URL || '' });
+          if (typeof result.data.SHOW_SALARY_BONUS !== 'undefined') {
+            setShowSalaryBonus(String(result.data.SHOW_SALARY_BONUS) !== '0');
+          }
         }
       } catch {
         // ignore
@@ -61,7 +65,7 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
 
     // Admin / supervisors
     { href: '/campaigns', label: 'Campaigns', icon: Megaphone, permission: 'canManageForms' as const },
-    { href: '/forms', label: 'Forms', icon: FileText, permission: 'canManageForms' as const },
+    { href: '/forms', label: 'Forms', icon: FileText, permission: 'canManageForms' as const, roles: ['Supervisor'] as const },
     { href: '/requests', label: 'Requests', icon: Bell, badge: requestCount, permission: 'canManageRequests' as const },
     { href: '/user-management', label: 'User Management', icon: Users, permission: 'canManageUsers' as const },
     { href: '/settings', label: 'Settings', icon: Sparkles, permission: 'canManageSettings' as const },
@@ -74,7 +78,9 @@ export default function Sidebar({ requestCount = 0 }: SidebarProps) {
     { href: '/agent/targets', label: 'My Target', icon: Target, permission: null, roles: ['User', 'Supervisor'] as const },
     { href: '/agent/submissions', label: 'My Submissions', icon: FileText, permission: null, roles: ['User', 'Supervisor'] as const },
     { href: '/agent/campaigns', label: 'Campaign Forms', icon: FolderKanban, permission: null, roles: ['User', 'Supervisor'] as const },
-    { href: '/agent/salary', label: 'My Salary & Bonus', icon: DollarSign, permission: null, roles: ['User', 'Supervisor'] as const },
+    ...(showSalaryBonus
+      ? ([{ href: '/agent/salary', label: 'My Salary & Bonus', icon: DollarSign, permission: null, roles: ['User', 'Supervisor'] as const }] as const)
+      : ([] as const)),
     { href: '/agent/requests', label: 'Requests', icon: MessageSquare, permission: null, roles: ['User', 'Supervisor'] as const },
   ];
 

@@ -35,6 +35,7 @@ export default function UserManagementPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [availableFields, setAvailableFields] = useState<FormField[]>([]);
   const [loadingFields, setLoadingFields] = useState(false);
+  const [showSalaryBonus, setShowSalaryBonus] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -66,6 +67,21 @@ export default function UserManagementPage() {
   useEffect(() => {
     fetchUsers();
     fetchAvailableFields();
+  }, []);
+
+  useEffect(() => {
+    const loadVisibility = async () => {
+      try {
+        const res = await fetch('/api/settings/public');
+        const json = await res.json();
+        if (json?.success && typeof json.data?.SHOW_SALARY_BONUS !== 'undefined') {
+          setShowSalaryBonus(String(json.data.SHOW_SALARY_BONUS) !== '0');
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadVisibility();
   }, []);
 
   const fetchAvailableFields = async () => {
@@ -215,6 +231,8 @@ export default function UserManagementPage() {
           role: formData.role,
           permissions: formData.permissions,
           allowedFormFields: formData.allowedFormFields,
+          salary: formData.salary,
+          bonus: formData.bonus,
         };
         if (formData.password) {
           updateData.password = formData.password;
@@ -419,7 +437,7 @@ export default function UserManagementPage() {
                   <option value="Admin">Admin</option>
                 </select>
               </div>
-              {(formData.role === 'User' || formData.role === 'Supervisor') && (
+              {showSalaryBonus && (formData.role === 'User' || formData.role === 'Supervisor') && (
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-2">Salary</p>
                   <input
@@ -431,7 +449,7 @@ export default function UserManagementPage() {
                   />
                 </div>
               )}
-              {(formData.role === 'User' || formData.role === 'Supervisor') && (
+              {showSalaryBonus && (formData.role === 'User' || formData.role === 'Supervisor') && (
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-2">Bonus</p>
                   <input

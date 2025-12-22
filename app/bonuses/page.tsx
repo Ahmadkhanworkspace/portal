@@ -185,8 +185,19 @@ export default function BonusesPage() {
   };
 
   const handleSaveRule = async () => {
-    if (!ruleForm.userId || !ruleForm.campaignId || !ruleForm.productGrade || ruleForm.bonusAmount < 0) {
-      alert('Please fill in all required fields');
+    // Validate required fields
+    if (!ruleForm.userId || !ruleForm.campaignId) {
+      alert('Please select a user and campaign');
+      return;
+    }
+    
+    if (!ruleForm.productGrade || !ruleForm.productGrade.trim()) {
+      alert('Please enter a product grade');
+      return;
+    }
+    
+    if (typeof ruleForm.bonusAmount !== 'number' || ruleForm.bonusAmount < 0) {
+      alert('Please enter a valid bonus amount (must be 0 or greater)');
       return;
     }
 
@@ -195,9 +206,9 @@ export default function BonusesPage() {
         userId: ruleForm.userId,
         campaignId: ruleForm.campaignId,
         productGrade: ruleForm.productGrade.trim(),
-        bonusAmount: ruleForm.bonusAmount,
-        target: ruleForm.target ? Number(ruleForm.target) : undefined,
-        note: ruleForm.note,
+        bonusAmount: Number(ruleForm.bonusAmount),
+        target: ruleForm.target && ruleForm.target.trim() ? Number(ruleForm.target) : undefined,
+        note: ruleForm.note || '',
         isActive: ruleForm.isActive,
       };
 

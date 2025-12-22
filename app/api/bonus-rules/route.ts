@@ -50,9 +50,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, campaignId, productGrade, bonusAmount, target, note, isActive } = body;
 
-    if (!userId || !campaignId || !productGrade || typeof bonusAmount !== 'number') {
+    // Validate required fields
+    if (!userId || !campaignId) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: userId, campaignId, productGrade, bonusAmount' },
+        { success: false, error: 'Missing required fields: userId and campaignId are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!productGrade || !productGrade.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'productGrade is required' },
+        { status: 400 }
+      );
+    }
+
+    if (typeof bonusAmount !== 'number' || bonusAmount < 0) {
+      return NextResponse.json(
+        { success: false, error: 'bonusAmount must be a number >= 0' },
         { status: 400 }
       );
     }
@@ -67,10 +82,11 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Check if rule already exists
+    const trimmedProductGrade = productGrade.trim();
     const existing = await BonusRule.findOne({
       user: userId,
       campaign: campaignId,
-      productGrade: productGrade.trim(),
+      productGrade: trimmedProductGrade,
     });
 
     if (existing) {
@@ -80,16 +96,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const rule = await BonusRule.create({
+    const ruleData: any = {
       user: userId,
       campaign: campaignId,
-      productGrade: productGrade.trim(),
+      productGrade: trimmedProductGrade,
       bonusAmount,
-      target: target || undefined,
       note: note || '',
       isActive: isActive !== undefined ? isActive : true,
       createdBy: user.id,
-    });
+    };
+
+    // Only set target if it's provided and valid
+    if (target !== undefined && target !== null && target !== '') {
+      const targetNum = Number(target);
+      if (!isNaN(targetNum) && targetNum >= 0) {
+        ruleData.target = targetNum;
+      }
+    }
+
+    const rule = await BonusRule.create(ruleData);
 
     const populated = await BonusRule.findById(rule._id)
       .populate('user', 'name email username role')
@@ -99,6 +124,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: populated }, { status: 201 });
   } catch (error: any) {
+    // Handle unique constraint errors
+    if (error.code === 11000 || error.message?.includes('duplicate')) {
+      return NextResponse.json(
+        { success: false, error: 'Bonus rule already exists for this user, campaign, and product grade' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to create bonus rule' },
       { status: 500 }

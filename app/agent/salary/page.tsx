@@ -10,12 +10,23 @@ export default function AgentSalaryPage() {
   const [salary, setSalary] = useState(0);
   const [bonus, setBonus] = useState(0);
   const [error, setError] = useState('');
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const fetchSalaryData = async () => {
       try {
         setLoading(true);
         setError('');
+        const settingsRes = await fetch('/api/settings/public');
+        const settingsJson = await settingsRes.json();
+        if (settingsJson?.success && typeof settingsJson.data?.SHOW_SALARY_BONUS !== 'undefined') {
+          const enabled = String(settingsJson.data.SHOW_SALARY_BONUS) !== '0';
+          setIsVisible(enabled);
+          if (!enabled) {
+            setLoading(false);
+            return;
+          }
+        }
         const userId = session?.user?.id;
         if (!userId) {
           setError('User not found');
@@ -50,18 +61,24 @@ export default function AgentSalaryPage() {
         <p className="text-gray-600">View your compensation details</p>
       </div>
 
+      {!isVisible ? (
+        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-gray-700">
+          Salary & Bonus section is currently hidden by admin.
+        </div>
+      ) : null}
+
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
           {error}
         </div>
       )}
 
-      {loading ? (
+      {isVisible && loading ? (
         <div className="flex items-center gap-3 text-gray-600">
           <Loader2 size={20} className="animate-spin" />
           Loading your compensation details...
         </div>
-      ) : (
+      ) : isVisible ? (
         <div className="grid gap-6 md:grid-cols-2">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center gap-4 mb-4">
@@ -102,7 +119,7 @@ export default function AgentSalaryPage() {
             <p className="text-sm text-emerald-700">Combined monthly salary and bonus</p>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

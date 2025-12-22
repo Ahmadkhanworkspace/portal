@@ -8,16 +8,21 @@ import { requirePermission } from '@/lib/permissions';
 export async function GET() {
   try {
     const user = await getCurrentUser();
-    if (!user || !requirePermission(user.role as any, 'canManageRequests', user.permissions as any)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
-    const requests = await RequestModel.find()
+
+    const canManageAll = requirePermission(user.role as any, 'canManageRequests', user.permissions as any);
+    const query = canManageAll ? {} : { requester: user.id };
+    const q = RequestModel.find(query)
       .populate('requester', 'name email')
-      .populate('reviewedBy', 'name email')
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
+    if (canManageAll) {
+      q.populate('reviewedBy', 'name email');
+    }
+    const requests = await q.lean();
 
     const data = requests.map((r: any) => ({
       id: r._id?.toString?.() || '',

@@ -57,16 +57,59 @@ export async function PUT(
     const body = await request.json();
     const { productGrade, bonusAmount, target, note, isActive } = body;
 
+    // Validate required fields
+    if (!productGrade || typeof bonusAmount !== 'number' || bonusAmount < 0) {
+      return NextResponse.json(
+        { success: false, error: 'productGrade and bonusAmount (>= 0) are required' },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
 
-    const updates: any = {};
-    if (productGrade !== undefined) updates.productGrade = productGrade.trim();
-    if (typeof bonusAmount === 'number') updates.bonusAmount = bonusAmount;
-    if (target !== undefined) updates.target = target || null;
-    if (note !== undefined) updates.note = note || '';
-    if (typeof isActive === 'boolean') updates.isActive = isActive;
+    // Get the existing rule to check for unique constraint conflicts
+    const existingRule = await BonusRule.findById(id);
+    if (!existingRule) {
+      return NextResponse.json({ success: false, error: 'Bonus rule not found' }, { status: 404 });
+    }
 
-    const updated = await BonusRule.findByIdAndUpdate(id, updates, { new: true })
+    // Check if changing productGrade would create a duplicate
+    const trimmedProductGrade = productGrade.trim();
+    if (trimmedProductGrade !== existingRule.productGrade) {
+      const duplicate = await BonusRule.findOne({
+        user: existingRule.user,
+        campaign: existingRule.campaign,
+        productGrade: trimmedProductGrade,
+        _id: { $ne: id },
+      });
+      if (duplicate) {
+        return NextResponse.json(
+          { success: false, error: 'Bonus rule already exists for this user, campaign, and product grade' },
+          { status: 400 }
+        );
+      }
+    }
+
+    const updates: any = {
+      productGrade: trimmedProductGrade,
+      bonusAmount,
+    };
+    
+    if (target !== undefined && target !== null && target !== '') {
+      updates.target = Number(target);
+    } else {
+      updates.target = null;
+    }
+    
+    if (note !== undefined) {
+      updates.note = note || '';
+    }
+    
+    if (typeof isActive === 'boolean') {
+      updates.isActive = isActive;
+    }
+
+    const updated = await BonusRule.findByIdAndUpdate(id, updates, { new: true, runValidators: true })
       .populate('user', 'name email username role')
       .populate('campaign', 'name campaignId')
       .populate('createdBy', 'name email')
@@ -78,6 +121,13 @@ export async function PUT(
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
+    // Handle unique constraint errors
+    if (error.code === 11000 || error.message?.includes('duplicate')) {
+      return NextResponse.json(
+        { success: false, error: 'Bonus rule already exists for this user, campaign, and product grade' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to update bonus rule' },
       { status: 500 }

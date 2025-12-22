@@ -19,16 +19,18 @@ export async function GET(
       );
     }
 
-    if (!requirePermission(currentUser.role as any, 'canManageUsers', currentUser.permissions as any)) {
+    // Handle both async and sync params (Next.js 15+ uses Promise)
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const userId = resolvedParams.id;
+
+    const canManageUsers = requirePermission(currentUser.role as any, 'canManageUsers', currentUser.permissions as any);
+    const isSelf = currentUser.id === userId;
+    if (!isSelf && !canManageUsers) {
       return NextResponse.json(
         { success: false, error: 'Forbidden: Admin access required' },
         { status: 403 }
       );
     }
-
-    // Handle both async and sync params (Next.js 15+ uses Promise)
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const userId = resolvedParams.id;
 
     await connectDB();
     const user = await User.findById(userId).select('-password');

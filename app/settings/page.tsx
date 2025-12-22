@@ -16,6 +16,7 @@ interface SettingsData {
   CHAT_HISTORY_LIMIT?: string | null;
   BONUS_PER_SUBMISSION?: string | null;
   BONUS_TARGET_BONUS?: string | null;
+  SHOW_SALARY_BONUS?: string | null;
 }
 
 interface CampaignRow {
@@ -59,6 +60,7 @@ export default function SettingsPage() {
     CHAT_HISTORY_LIMIT: '50',
     BONUS_PER_SUBMISSION: '0',
     BONUS_TARGET_BONUS: '0',
+    SHOW_SALARY_BONUS: '1',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,6 +97,7 @@ export default function SettingsPage() {
             CHAT_HISTORY_LIMIT: result.data.CHAT_HISTORY_LIMIT || '50',
             BONUS_PER_SUBMISSION: result.data.BONUS_PER_SUBMISSION || '0',
             BONUS_TARGET_BONUS: result.data.BONUS_TARGET_BONUS || '0',
+            SHOW_SALARY_BONUS: typeof result.data.SHOW_SALARY_BONUS !== 'undefined' ? String(result.data.SHOW_SALARY_BONUS) : '1',
           });
         } else {
           setMessage({ type: 'error', text: result.error || 'Failed to load settings' });
@@ -369,6 +372,19 @@ export default function SettingsPage() {
               <p className="text-sm font-semibold text-gray-900">Bonus rules</p>
               <p className="text-xs text-gray-500">Used for targets/bonuses across admin and agent views.</p>
             </div>
+          </div>
+          <div className="mb-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={String(settings.SHOW_SALARY_BONUS || '1') !== '0'}
+                onChange={(e) => setSettings({ ...settings, SHOW_SALARY_BONUS: e.target.checked ? '1' : '0' })}
+                className="rounded"
+                disabled={loading}
+              />
+              <span className="text-sm font-medium text-gray-700">Show Salary & Bonus section</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1">Controls visibility of Salary & Bonus in the agent portal and user management.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
